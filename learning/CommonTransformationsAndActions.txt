@@ -29,7 +29,7 @@ Pseudo-set Operations
          { panda, tea }
    * cartesian()
       RDD1.cartesian(RDD2)
-         { (cofee, coffee), (coffee, monkey) ... (cofee, cake), (panda, coffee) ... (tea, cake) }
+         { (coffee, coffee), (coffee, monkey) ... (cofee, cake), (panda, coffee) ... (tea, cake) }
          
 Actions
    * reduce()
