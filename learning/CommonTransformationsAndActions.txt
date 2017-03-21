@@ -20,7 +20,7 @@ Pseudo-set Operations
    * distinct()
    * union()
       RDD1.union(RDD2)
-         { cofee panda, monkey, tea, kitty, cake }
+         { coffee panda, monkey, tea, kitty, cake }
    * intersection()
       RDD1.intersection(RDD2)
          { coffee, monkey }
