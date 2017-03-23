@@ -34,3 +34,22 @@ Pseudo-set Operations
 Actions
    * reduce()
       rdd.reduce((x, y) => x + y)
+   * collect()
+      gathers all partitions to a single machine
+      rdd.collect()
+   * count()
+   * countByValue()
+   * take(num)
+      rdd.take(7)
+   * top(num)
+      rdd.top(5)
+   * takeSample(withReplacement, num, [seed])
+      takeSample(true, 12, 1221)
+   * reduce(func)
+      rdd.reduce((x, y) => x + y) // sum
+   * fold(identity)(func)
+      rdd.fold(1)((x, y) => x * y) // product
+   * aggregate(identity)(seqOp, combOp)
+      rdd.aggregate((0, 0))((x, y) => (x._1 + y, x._2 + 1),
+                            (x, y) => (x._1 + y._1, x._2 + y._2)) // running sum and count
+   * foreach(func)
