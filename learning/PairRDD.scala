@@ -53,3 +53,64 @@ result.collectAsMap().foreach(println(_));
 
 
  
+// Joins
+val storeAddress = { (Store("Ritual"), "1026 Valencia"),
+                     (Store("Philz"), "748 Van Ness"),
+                     (Store("Philz"), "3101 24th"),
+                     (Store("Starbucks"), "Seattle") };
+val storeRating = { (Store("Ritual"), 4.9), (Store("Philz"), 4.8) };
+val storeAddressRating = storeAddress.join(storeFating);
+// { (Store("Ritual"), (1026 Valencia, 4.9)), ... }
+
+
+
+// Sorting
+val input: RDD[(Int, Venue)] = ...;
+implicit val sortIntegersByString = new Ordering[Int] {
+  override def compare(a: Int, b: Int) = a.toString.compare(b.toString);
+};
+rdd.sortByKey();
+
+
+
+// Actions on Pair RDDs
+// ex = { (1, 2), (3, 4), (3, 6) }
+rdd.countByKey(); // { (1, 1), (3, 2) }
+rdd.collectAsMap(); // Map{ (1, 2), (3, 4), (3, 6) }
+rdd.lookup(3); // [4, 6]
+
+
+
+// Data Partitioning
+// Init. code: load user infor from a Hadoop SequenceFile on HDFS. This distributes elems of
+// userData by the HDFS block where they are found, and doesn't provide Spark w any way of knowing
+// in which a partition a particular UserID is located
+val sc = new SparkContext(...);
+val userData = sc.sequenceFile[UserID, UserInfo]("hdfs://...").persist();
+
+// Func called periodically to process a logfile of events in the past 5 mins-- assumed to be a
+// SequenceFile containing (UserID, LinkInfo) pairs
+def processNewLogs(logFileName: String) {
+  val events = sc.sequenceFile[UserID, LinkInfo](logFileName);
+  val joined = userData.join(events); // RDD: (UserID, (UserInfor, LinkInfo))
+  val offTopicVisits = joined.filter {
+    // Expand tuple into compoents
+    case (userId, (userInfo, linkInfo)) => !userInfo.topics.contains(linkInfo.topic);
+  }.count();
+  println("Number of visits to no-subscribed topics: " + offTopicVisits);
+}
+
+// inefficient: join used every time func is called, wo any knowledge of partitioning. Improve:
+import org.apache.spark.HashPartitioner;
+
+val userData = sc.sequenceFile[UserID, LinkInfo]("hdfs://...")
+  .partitionBy(new HashPartitioner(100)) // for 100 partitions
+  .persist();
+
+
+
+// Determining and RDD's Partitioner
+val pairs = sc.parallelize(List((1, 1), (2, 2), (3, 3)));
+pairs.partitioner; // None
+val partitioned = pairs.partitionBy(new HashPartitioner(2));
+partitioned.partitioner; // Some(spark.HashPartitioner...)
