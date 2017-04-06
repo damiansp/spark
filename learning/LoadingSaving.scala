@@ -67,3 +67,47 @@ val data = sc.sequenceFile(inFile, classOf[Text], classOf[IntWritable]).map{
 val data = sc.parallelize(List(("Panda", 3), ("Kay", 6), ("Snail", 2)))
 data.saveAsSequenceFile(outputFile)
 
+
+
+// File systems
+// Local
+val rdd = sc.textFile("file://path/to/file")
+
+// S3
+val rdd = sc.textFile("s3n://bucket/path-in-bucket")
+
+// HDFS
+val rdd = sc.textFile("hdfs://master:port/path")
+
+
+
+// Structured Data with SparkSQL
+// Apache Hive // skipping for now
+
+// JSON
+val tweets = hiveCtx.jsonFile("tweets.json")
+tweets.registerTempTable("tweets")
+val results = hiveCtx.sql("SELECT user.name, text FROM tweets")
+
+
+
+// Databases
+def createConnection() = {
+  Class.forName("com.mysql.jdbc.Driver").newInstance()
+  DriverManager.getConnection("jdbc:mysql://localhost/test?user=dsatterthwaite")
+}
+
+def extractValues(r: ResultSet) = {
+  (r.getInt(1), r.getString(2))
+}
+
+val data = new JdbcRDD(
+  sc,
+  createConnecton,
+  "SELECT * FROM panda WHERE ? <= id AND id <= ?",
+  lowerBound = 1,
+  upperBound = 3,
+  numPartitions = 2,
+  mapRow = extractValues)
+println(data.collect().toList)
+
