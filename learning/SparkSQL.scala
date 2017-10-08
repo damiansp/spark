@@ -45,3 +45,13 @@ df.groupBy(df("name")).min() // max, mean, agg, etc
 
 // convert DF to RDD
 val topTweetText = topTweets.rdd().map(row => row.getString(0))
+
+
+/* Loading and Saving Data */
+// Apache Hive
+val hiveCtx = new HiveContext(sc)
+val rows = hiveCtx.sql("SELECT key, valu FROM myTable")
+val keys = rows.map(row => row.getInt(0))
+
+/* Loading JSON */
+val input = hiveCtx.jsonFile(inputFile)
