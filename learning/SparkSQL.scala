@@ -45,3 +45,14 @@ df.groupBy(df("name")).min() // max, mean, agg, etc
 
 // convert DF to RDD
 val topTweetText = topTweets.rdd().map(row => row.getString(0))
+
+
+/* From RDDs */
+case class HappyPerson(handle: String, favoriteDrink: String)
+
+val happyPeopleRDD = sc.parallelize(List(HappyPerson("Michael Stipe", "boba tea")))
+// implicit conversion equiv to sqlCtx.createDataFrame(happyPeopleRDD)
+happyPeopleRDD.registerTempTable("happyPeople")
+
+
+/* UDFs (User-Defined Funtions) */

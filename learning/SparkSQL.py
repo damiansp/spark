@@ -2,7 +2,7 @@ from pyspark.sql import HiveContext, Row # or
 from pyspark.sql import SQLContext, Row  # (if can't include hive dependencies)
 
 sc = SparkContext(...)
-hiveCtx = HiveContext(sc) # or:
+hive_ctx = HiveContext(sc) # or:
 sqlContext = SQLContextSingleton.getInstance(sc)
 
 
@@ -27,3 +27,12 @@ df.groupBy(df('name')).min() # max, mean, agg, etc
 
 # Convert DF to RDD
 top_tweet_text = top_tweets.rdd().map(lambda row: row.text)
+
+
+# From RDDs
+happy_people_RDD = sc.parallelize([Row(name='REM', favorite_drink='coffee')])
+happy_people_DF = hive_ctx.inferSchema(happy_people_RDD)
+happy_people_DF.registerTempTable('happy_people')
+
+
+# UDFs (User-Defined Functions)
