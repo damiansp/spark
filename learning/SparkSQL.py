@@ -29,15 +29,6 @@ df.groupBy(df('name')).min() # max, mean, agg, etc
 top_tweet_text = top_tweets.rdd().map(lambda row: row.text)
 
 
-<<<<<<< HEAD:learning/SparkSQL.py.bk
-# From RDDs
-happy_people_RDD = sc.parallelize([Row(name='REM', favorite_drink='coffee')])
-happy_people_DF = hive_ctx.inferSchema(happy_people_RDD)
-happy_people_DF.registerTempTable('happy_people')
-
-
-# UDFs (User-Defined Functions)
-=======
 
 # Loading and Saving Data
 # Apache Hive
@@ -71,4 +62,14 @@ panda_friends.save('hdfs://....', 'parquet')
 
 # Loading JSON
 dat = hive_ctx.jsonFile(input_file)
->>>>>>> 7036688732a43270a467d283e32875da24472d27:learning/SparkSQL.py
+
+
+# From RDDs
+happy_people_RDD = sc.parallelize([Row(name='REM', favorite_drink='coffee')])
+happy_people_DF = hive_ctx.inferSchema(happy_people_RDD)
+happy_people_DF.registerTempTable('happy_people')
+
+
+# UDFs (User-Defined Functions)
+
+

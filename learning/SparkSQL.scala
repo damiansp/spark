@@ -47,7 +47,15 @@ df.groupBy(df("name")).min() // max, mean, agg, etc
 val topTweetText = topTweets.rdd().map(row => row.getString(0))
 
 
-<<<<<<< HEAD:learning/SparkSQL.scala.bk
+/* Loading and Saving Data */
+// Apache Hive
+val hiveCtx = new HiveContext(sc)
+val rows = hiveCtx.sql("SELECT key, valu FROM myTable")
+val keys = rows.map(row => row.getInt(0))
+
+/* Loading JSON */
+val input = hiveCtx.jsonFile(inputFile)
+
 /* From RDDs */
 case class HappyPerson(handle: String, favoriteDrink: String)
 
@@ -57,13 +65,3 @@ happyPeopleRDD.registerTempTable("happyPeople")
 
 
 /* UDFs (User-Defined Funtions) */
-=======
-/* Loading and Saving Data */
-// Apache Hive
-val hiveCtx = new HiveContext(sc)
-val rows = hiveCtx.sql("SELECT key, valu FROM myTable")
-val keys = rows.map(row => row.getInt(0))
-
-/* Loading JSON */
-val input = hiveCtx.jsonFile(inputFile)
->>>>>>> 7036688732a43270a467d283e32875da24472d27:learning/SparkSQL.scala
