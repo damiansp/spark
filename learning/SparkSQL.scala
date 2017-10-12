@@ -64,4 +64,4 @@ val happyPeopleRDD = sc.parallelize(List(HappyPerson("Michael Stipe", "boba tea"
 happyPeopleRDD.registerTempTable("happyPeople")
 
 
-/* UDFs (User-Defined Funtions) */
+

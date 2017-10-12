@@ -1,5 +1,6 @@
 from pyspark.sql import HiveContext, Row # or
 from pyspark.sql import SQLContext, Row  # (if can't include hive dependencies)
+from pyspark.sql.types import IntegerType
 
 sc = SparkContext(...)
 hive_ctx = HiveContext(sc) # or:
@@ -72,4 +73,7 @@ happy_people_DF.registerTempTable('happy_people')
 
 # UDFs (User-Defined Functions)
 
+# Udf to tell how long some text is
+hive_ctx.registerFunction('str_len', lambda x: len(x), IntegerType())
+lengthDataFrame = hive_ct.sql('SELECT str_len("text") FROM tweets LIMIT 10')
 
