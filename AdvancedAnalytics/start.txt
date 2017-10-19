@@ -1,5 +1,0 @@
-To run on Hadoop:
-> spark-shell --master yarn-client
-
-To run locally without Hadoop:
-> spark-shell --master local[*]
