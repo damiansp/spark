@@ -1,5 +1,0 @@
-From root directory, run application as:
-> sbt package # compile, link
-> spark-submit --master local --class main.scala.ScalaFile [args] target/scala-2.x.x/jarfile.jar
-
-(Assumes ScalaFile.scala in src/main/scala/ and in package main)
