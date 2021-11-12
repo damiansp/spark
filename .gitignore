@@ -4,3 +4,6 @@
 data/
 project/
 target/
+
+
+*.csv
