@@ -21,8 +21,18 @@ spark.read.schema(schema).csv('...')
 schema = 'id_1 INT, id_2 INT, cmp_fname_c1 DOUBLE'
 '''
 
-# Also
+# Also -- reads/writes
 '''
 d1 = spark.read.format('json').load('myfile.json')
 d2 = spark.read.json('myfile.json')
+
+d1.write.format('parquet').save('myfile.parquet')
+d1.write.parquet('myfile.parquet')
+d2.write.format('parquet').mode('overwrite').save('myfile.parquet')
 '''
+
+print(parsed.first)
+parsed.show(5)
+n = parsed.count()
+print('n:', n)
+
