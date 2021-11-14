@@ -1,3 +1,6 @@
+from pyspark.sql.functions import avg, col, stddev
+
+
 prev = spark.read.csv('linkage')
 print(prev.show()) # head
 
@@ -6,6 +9,7 @@ parsed = (spark.read.option('header', 'true')
           .option('inferSchema', 'true')
           .csv('linkage'))
 parsed.printSchema()
+parsed.cache()
 
 
 # Alternatives for known schemata:
@@ -36,3 +40,13 @@ parsed.show(5)
 n = parsed.count()
 print('n:', n)
 
+parsed.groupBy('is_match').count().orderBy(col('count').desc()).show()
+parsed.agg(avg('cmp_sex'), stddev('cmp_sex')).show()
+
+parsed.createOrReplaceTempView('linkage') # allow to be treated as a SQL table
+spark.sql('''
+    SELECT is_match, COUNT(*) n
+    FROM linkage
+    GROUP BY is_match
+    ORDER BY n DESC'''
+).show()
