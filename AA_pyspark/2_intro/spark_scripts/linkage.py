@@ -50,3 +50,25 @@ spark.sql('''
     GROUP BY is_match
     ORDER BY n DESC'''
 ).show()
+
+
+# Connect SparkSQL to Hive
+#spark_session = (
+#    SparkSession.builder.master('local[4]').enableHiveSupport().getOrCreate())
+
+
+
+summary = parsed.describe() # count, mean, sd, min, max
+summary.show()
+
+matches = parsed.where('is_match=true')
+match_summary = matches.describe()
+match_summary.show()
+
+misses = parsed.filter(col('is_match') == False)
+miss_summary = misses.describe()
+miss_summary.show()
+
+summary_p = summary.toPandas()
+print(summary_p.head())
+print(summary_p.shape)
