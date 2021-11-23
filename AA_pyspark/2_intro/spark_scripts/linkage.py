@@ -1,4 +1,6 @@
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import avg, col, stddev
+from pyspark.sql.types import DoubleType
 
 
 prev = spark.read.csv('linkage')
@@ -72,3 +74,53 @@ miss_summary.show()
 summary_p = summary.toPandas()
 print(summary_p.head())
 print(summary_p.shape)
+
+# Transpose df
+summary_p = summary_p.set_index('summary').transpose().reset_index()
+summary_p = summary_p.reneame(columns={'index': 'field'})
+summary_p = summary_p.rename_axis(None, axis=1)
+print(summary_p.shape)
+
+summary_t = spark.createDataFrame(summary_p)
+summary_t.show()
+summary_t.printSchema()
+
+for c in summary_t.columns:
+    if c == 'field':
+        continue
+    summary_t = summary_t.withColumn(c, summary_t[c].cast(DoubleType()))
+summary_t.printSchema()
+
+
+# Wrap in func
+def pivot_summary(desc: DataFrame) -> DataFrame:
+    desc_p = desc.toPandas()
+    # transpose
+    desc_p = desc_p.set_index('summary').transpose.reset_index()
+    desc_p = desc_p.reneame(columns={'index': 'field'})
+    desc_p = desc_p.rename_axis(None, axis=1)
+    # Str -> Double for metrics cols
+    for c in desc_t.columns:
+    if c == 'field':
+        continue
+    else:
+        desc_t = summary_t.withColumn(c, summary_t[c].cast(DoubleType()))
+    return desc_t
+
+
+match_summary_t = pivot_summary(match_summary)
+miss_summary_t = pivot_summary(miss_summary)
+
+
+
+# Joins; Feature selection
+match_summary_t.createOrReplaceTempView('match_desc')
+miss_summary_t.createOrReplaceTempView('miss_desc')
+spark.sql(
+    '''
+    SELECT a.field, a.count + b.count total, a.mean - b.meant delta
+    FROM match_desc a
+    INNER JOIN miss_desc b ON a.field = b.field
+    WHERE a.field NOT IN ('id_1', 'id_2')
+    ORDER BY delta DESC, total DESC'''
+).show()
