@@ -124,3 +124,28 @@ spark.sql(
     WHERE a.field NOT IN ('id_1', 'id_2')
     ORDER BY delta DESC, total DESC'''
 ).show()
+
+
+
+# Scoring and Model Eval
+good_features = ['cmp_lname_c1', 'cmp_plz', 'cmp_by', 'cmp_bd', 'cmp_bm']
+sum_expression = ' + '.join(good_features)
+print(sum_expression)
+
+scored = (parsed
+          .fillna(0, subset=good_features)
+          .withColumn('score', expr(sum_expression))
+          .select('score', 'is_match'))
+scored.show()
+
+
+# Confusion matrix
+def cross_tabs(scored: DataFrame, t: DoubleType) -> DataFrame:
+    return (scored
+            .selectExpr(f'score >= {t} as above', 'is_match')
+            .groupBy('above')
+            .pivot('is_match', ('true', 'false'))
+            .count)
+
+crossTabs(scored, 4.).show()
+crossTabs(scored, 2.).show()
