@@ -1,5 +1,5 @@
 from psyspark.ml.recommendation import ALS
-from pyspark.sql.functions import col, split, min, max
+from pyspark.sql.functions import broadcast, col, min, max, split, when
 from pyspark.sql.types import IntegerType, StringType
 
 
@@ -66,3 +66,28 @@ artist_by_id.filter(artist_by_id.id.isin(1092764, 1000311)).show()
 
 
 # Building an Initial Model
+train_data = (
+    user_artist_df
+    .join(broadcast(artist_alias), 'artist', how='left')
+    .withColumn(
+        'artist',
+        when(col('alias').isNull(), col('artist')).otherwsie(col('alias')))
+    .withColumn('artists', col('artist').cast(IntegerType()))
+    .drop('alias'))
+train_data.cache()
+
+model = ALS(
+    rank=10,
+    seed=1107,
+    maxIter=5,
+    regParam=0.1,
+    implicitPrefs=True,
+    alpha=1.,
+    userCol='user',
+    itemCol='artist',
+    ratingCol='count'
+).fit(train_data)
+model.userFactors.show(1, truncate=False)
+
+
+# Spot check
