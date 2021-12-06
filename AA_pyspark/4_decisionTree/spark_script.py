@@ -1,3 +1,5 @@
+from pyspark.ml.classification import DecisionTreeClassifier
+from pyspark.ml.feature import VectorAssembler
 from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType
 
@@ -24,4 +26,19 @@ print(data.head())
 
 
 # First Tree
-             
+train_data, test_data = data.randomSplit([0.9, 0.1])
+train_data.cache()
+test_data.cache()
+
+input_cols = col_names[:-1]
+vector_assembler = VectorAssembler(inputCols=input_cols,
+                                   outputCol='featureVector')
+assembled_train_data = vector_assembler.transform(train_data)
+assembled_train_data.select('featureVector').show(truncate=False)
+
+classifier = DecisionTreeClassifier(seed=123, l
+                                    abelCol='Cover_Type',
+                                    featuresCol='featureVector',
+                                    predictionCol='prediction')
+model = classifier.fit(assembled_train_data)
+print(model.toDebugString)
