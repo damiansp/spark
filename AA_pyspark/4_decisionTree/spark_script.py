@@ -1,5 +1,7 @@
+import pandas as pd
 from pyspark.ml.classification import DecisionTreeClassifier
 from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType
 
@@ -42,3 +44,18 @@ classifier = DecisionTreeClassifier(seed=123, l
                                     predictionCol='prediction')
 model = classifier.fit(assembled_train_data)
 print(model.toDebugString)
+
+importance = pd.DataFrame(
+    model.featureImportances.toArray(), index=inputCols, columns=['importance']
+).sort_values(by='importance', ascending=False)
+print(importance)
+
+predictions = model.transform(assembled_train_data)
+predictions.select('Cover_Type', 'prediction', 'probability')\
+           .show(10, truncate=False)
+
+evaluator = MulticlassClassificationEvaluator(labelCol='Cover_Type',
+                                              predictionCol='prediction')
+print('Acc:', evaluator.setMetricName('accuracy').evaluate(predictions))
+print('F1:', evaluator.setMetricName('f1').evaluate(predictions))
+
