@@ -2,6 +2,7 @@ import pandas as pd
 from pyspark.ml.classification import DecisionTreeClassifier
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.sql.import DataFrame as DF
 from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType
 
@@ -58,4 +59,35 @@ evaluator = MulticlassClassificationEvaluator(labelCol='Cover_Type',
                                               predictionCol='prediction')
 print('Acc:', evaluator.setMetricName('accuracy').evaluate(predictions))
 print('F1:', evaluator.setMetricName('f1').evaluate(predictions))
+
+confusion_matrix = (predictions.groupBy('Cover_Type')
+                    .pivot('prediction', range(1, 8))
+                    .count()
+                    .na.fill(0.)
+                    .orderBy('CoverType'))
+confusion_matrix.show()
+
+total = data.count()
+
+
+def class_probabilities(data):
+    out = (data.groupBy('Cover_Type')
+           .count()
+           .orderBy('Cover_Type')
+           .select(col('count').cast(DoubleType()))
+           .withColumn('count_proportion', col('count') / total)
+           .select('count_proportion').collect())
+    return out
+
+train_prior_probs = class_probabilities(train_data)
+test_prior_probs = class_probabilities(test_data)
+print(train_prior_probs)
+
+train_prior_probs = [p[0] for p in train_prior_probs]
+test_prior_probs = [p[0] for p in test_prior_probs]
+baseline_acc = sum(
+    [train_p * cv_p
+     for train_p, cv_p in zip(train_prior_probs, test_prior_probs)])
+print('Baseline:', baseline_acc)
+
 
