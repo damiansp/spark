@@ -1,7 +1,9 @@
 import pandas as pd
+from pyspark.ml import Pipeline
 from pyspark.ml.classification import DecisionTreeClassifier
-from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit
 from pyspark.sql.import DataFrame as DF
 from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType
@@ -91,3 +93,27 @@ baseline_acc = sum(
 print('Baseline:', baseline_acc)
 
 
+# Tuning
+assembler = VectorAssembler(inputCols=input_cols, outputCol='featureVector')
+classifier = DecisionTreeClassifier(seed=111,
+                                    labelCol='Cover_Type',
+                                    featuresCol='featureVector',
+                                    predictionCol='prediction')
+pipeline = Pipeline(stages=[assembler, classifier])
+
+param_grid = (ParamGridBuilder()
+              .addGrid(classifier.impurity, ['gini', 'entropy'])
+              .addGrid(classifier.maxDepth, [1, 20])
+              .addGrid(classifier.maxBins, [40, 300])
+              .addGreid(classifier.minInfoGain, [0, 0.05])
+              .build())
+multiclass_eval = (MulticlassClassificationEvaluator()
+                   .setLabelCol('Cover_Type')
+                   .setPredictionsCol('prediction')
+                   .setMetricName('accuracy'))
+validator = TrainValidationSplit(seed=222,
+                                 estimator=pipeline,
+                                 evaluator=multiclass_eval,
+                                 estimatorParamMaps=paramGrid,
+                                 trainRatio=0.8)
+validator_model = validator.fit(train_data)
