@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import pandas as pd
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import DecisionTreeClassifier
@@ -117,3 +119,39 @@ validator = TrainValidationSplit(seed=222,
                                  estimatorParamMaps=paramGrid,
                                  trainRatio=0.8)
 validator_model = validator.fit(train_data)
+
+best_model = validator_model.bestModel
+pprint(best_model.stages[1].extractParamMap())
+
+metrics = validator_model.validationMetrics
+params = validator_model.getEstimatorParamMaps()
+metrics_and_params = list(zip(metrics, params))
+metrics_and_params.sort(key=lambda x: x[0], reverse=True)
+print(metrics_and_params)
+
+metrics.sort(reverse=True)
+print(metrics[0]) # highest accuracy
+print(multiclass_eval.evaluate(best_model.transform(test_data))) # on test set
+
+
+def one_cold(data):
+    '''reverse one-hot encoding'''
+    wilderness_cols = ['Wilderness_Area_' + str(i) for i in range(4)]
+    wilderness_assembler = (VectorAssembler()
+                            .setInputCols(wilderness_colls)
+                            .setOutputCol('wilderness'))
+    unhot_udf = udf(lambda v: v.toArray().tolist().index(1))
+    with_wilderness = (wilderness_assembler
+                       .transform(data)
+                       .drop(*wilderness_cols)
+                       .withColumn('wilderness', unhot_udf(col('wilderness'))))
+    soil_cols = ['Soil_Type_' + str(i) for i in range(40)]
+    soil_assembler = (
+        VectorAssembler().setInputCols(soil_cols).setOutputCol('soil'))
+    with_soil = (soil_assembler
+                 .transform(with_wilderness)
+                 .drop(*soil_cols)
+                 .withColumn('soil', unhot_udf(col('soil'))))
+    return with_soil
+
+
