@@ -2,9 +2,10 @@ from pprint import pprint
 
 import pandas as pd
 from pyspark.ml import Pipeline
-from pyspark.ml.classification import DecisionTreeClassifier
+from pyspark.ml.classification import (DecisionTreeClassifier,
+                                       RandomForestClassifer)
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.feature import VectorAssembler, VectorIndexer
 from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit
 from pyspark.sql.import DataFrame as DF
 from pyspark.sql.functions import col
@@ -155,3 +156,31 @@ def one_cold(data):
     return with_soil
 
 
+onecold_train_data = one_cold(train_data)
+cols = onecold_train_data.columns
+input_cols = [c for c in cols if c != 'Cover_Type']
+assembler = (VectorAssembler()
+             .setInputCols(input_cols)
+             .setOutputCol('featureVector'))
+indexer = (VectorIndexer()
+           .setMaxCategories(40)
+           .setInputCol('featureVector')
+           .setOutpuCol('indexedVector'))
+classifier = (DecisionTreeClassifier()
+              .setLabelCol('Cover_Type')
+              .setFeaturesCol('indexedVector')
+              .setPredictionCol('prediction'))
+pipeline = Pipeline().setStages([assembler, indexer, classifier])
+
+
+
+# Forests
+classifer = RandomForestClassifier(seed=321,
+                                   labelCol='Cover_Type',
+                                   featuresCol='indexedVector',
+                                   predictionCol='prediction')
+forest_model = best_model.stages[1]
+feature_importance_list = list(
+    zip(input_cols, forest_model.featureImportances.toArray()))
+feature_importance_list.sort(key=lambda x: x[1], reverse=True)
+pprint(feature_importance_list)
