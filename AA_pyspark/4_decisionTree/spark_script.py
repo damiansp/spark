@@ -184,3 +184,8 @@ feature_importance_list = list(
     zip(input_cols, forest_model.featureImportances.toArray()))
 feature_importance_list.sort(key=lambda x: x[1], reverse=True)
 pprint(feature_importance_list)
+
+onecold_test_data = one_cold(test_data)
+best_model.transform(onecold_test_data.drop('Cover_Type'))\
+          .select('prediction')\
+          .show()
