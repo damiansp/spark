@@ -1,8 +1,11 @@
 from pprint import pprint
+from random import randint
 
 from pyspark.ml import Pipeline
 from pyspark.ml.clustering import KMeans, KMeansModel
+from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.ml.feature import VectorAssembler
+from pyspark.sql import DataFrame
 
 
 # First take on clustering
@@ -35,6 +38,62 @@ assembler = (VectorAssembler()
              .setOutputCol('featureVector'))
 kmeans = KMeans().setPredictionCol('cluster').setFeaturesCol('featureVector')
 pipeline = Pipeline().setStages([assembler, kmeans])
-pipline_model = pipline.fit(numeric_only)
-kmeans_model = pipline_model.stages[1]
+pipeline_model = pipeline.fit(numeric_only)
+kmeans_model = pipeline_model.stages[1]
 pprint(kmeans_model.clusterCenters())
+
+with_cluster = pipeline_model.transform(numeric_only)
+with_cluster.select('cluster', 'label')\
+            .groupBy('cluster', 'label')\
+            .cont()\
+            .orderBy(col('cluster'), col('count').desc())\
+            .show(25)
+
+
+# Choosing k
+def clustering_score(data, k):
+    numeric_only = data.drop('protocol_type', 'service', 'flag')
+    assembler = (VectorAssembler()
+                 .setInputCols(numeric_only.columns[:-1])
+                 .setOutputCol('featureVector'))
+    kmeans = (KMeans()
+              .setSeed(randint(100, 100_000))
+              .setK(k)
+              .setPredictionCol('cluster')
+              .setFeaturesCol('featureVector'))
+    pipeline = Pipeline().setStages([assembler, kmeans])
+    pipeline_model = pipline.fit(numeric_only)
+    evaluator = ClusteringEvaluator(predictionCol='cluster',
+                                    featuresCol='featureVector')
+    preds = pipeline_model.transform(numeric_only)
+    score = evaluator.evaluate(preds)
+    return score
+
+
+for k in range(20, 100, 20):
+    print(clustering_score(numeric_only, k))
+
+
+def clustering_score_1(data, k):
+    numeric_only = data.drop('protocol_type', 'service', 'flag')
+    assembler = (VectorAssembler()
+                 .setInputCols(numeric_only.columns[:-1])
+                 .setOutputCol('featureVector'))
+    kmeans = (KMeans()
+              .setSeed(randint(100, 100_000))
+              .setK(k)
+              .setMaxIter(40)
+              .setTol(1.0e-5)
+              .setPredictionCol('cluster')
+              .setFeaturesCol('featureVector'))
+    pipeline = Pipeline().setStages([assembler, kmeans])
+    pipeline_model = pipline.fit(numeric_only)
+    evaluator = ClusteringEvaluator(predictionCol='cluster',
+                                    featuresCol='featureVector')
+    preds = pipeline_model.transform(numeric_only)
+    score = evaluator.evaluate(preds)
+    return score
+
+
+for k in range(20, 100, 20):
+    print(clustering_score_1(numeric_only, k))
