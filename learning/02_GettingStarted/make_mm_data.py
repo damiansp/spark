@@ -1,5 +1,6 @@
 import numpy as np
 
+DATA = '../../data'
 STATES = {
     'Alabama': 'AL',
     'Alaska': 'AK',
@@ -67,4 +68,4 @@ def write_file(path, n_lines=100_000):
         for s, c, n in zip(states, color, num):
             f.write(f'{s},{c},{n}\n')
 
-write_file('data/mm.csv')
+write_file(f'{DATA}/mm.csv')
