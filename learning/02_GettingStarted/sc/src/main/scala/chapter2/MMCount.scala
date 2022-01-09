@@ -5,33 +5,36 @@ import org.apache.spark.sql.functions._
 
 
 /**
- * Usage: mmCount <path>
+ * Usage: MMCount [mm_dataset_file]
  */
 object MMCount {
   def main(args: Array[String]) {
     val spark = SparkSession.builder.appName("MMCount").getOrCreate()
     if (args.length < 1) {
-      print("Usage: mmCount <path>")
+      println("Usage: MMCount [mm_dataset_file]")
       sys.exit(1)
     }
     val mmFile = args(0)
-    val mmDF = spark.read.format("csv")
+    val mmDF = spark
+      .read.format("csv")
       .option("header", "true")
       .option("inferSchema", "true")
       .load(mmFile)
-    val countMMDF = mmDF.select("State", "Color", "Count")
+    val  countMMDF = mmDF
+      .select("State", "Color", "Count")
       .groupBy("State", "Color")
       .sum("Count")
       .orderBy(desc("sum(Count)"))
-    countMMDF.show(30)
+    countMMDF.show(60)
     println(s"Total Rows: ${countMMDF.count()}")
     println()
-    val caCountMMDF = mmDF.select("State", "Color", "Count")
+    val caCounts = mmDF
+      .select("*")
       .where(col("State") === "CA")
       .groupBy("State", "Color")
       .sum("Count")
       .orderBy(desc("sum(Count)"))
-    caCountMMDF.show(10)
+    caCounts.show(10)
     spark.stop()
   }
 }
