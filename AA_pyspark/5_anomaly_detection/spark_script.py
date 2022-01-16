@@ -4,7 +4,8 @@ from random import randint
 from pyspark.ml import Pipeline
 from pyspark.ml.clustering import KMeans, KMeansModel
 from pyspark.ml.evaluation import ClusteringEvaluator
-from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.feature import (
+    OneHotEncoder, StandardScaler, StringIndexer, VectorAssembler)
 from pyspark.sql import DataFrame
 
 
@@ -96,4 +97,47 @@ def clustering_score_1(data, k):
 
 
 for k in range(20, 100, 20):
-    print(clustering_score_1(numeric_only, k))
+    print(k, clustering_score_1(numeric_only, k))
+
+
+def clustering_score_2(data, k):
+    numeric_only = data.drop('protocol_type', 'service', 'flag')
+    assembler = (VectorAssembler()
+                 .setInputCols(numeric_only.columns[:-1])
+                 .setOutputCol('featureVector'))
+    scaler = (StandardScaler()
+              .setInputCol('featureVector')
+              .setOutputCol('scaledFeatureVector')
+              .setWithStd(True).
+              setWithMean(False))
+    kmeans = (KMeans()
+              .setSeed(randint(100, 100_000))
+              .setK(k)
+              .setMaxIter(40)
+              .setTol(1.0e-5)
+              .setPredictionCol('cluster')
+              .setFeaturesCol('scaledFeatureVector'))
+    pipeline = Pipeline().setStages([assembler, scaler, kmeans])
+    pipeline_model = pipline.fit(numeric_only)
+    evaluator = ClusteringEvaluator(predictionCol='cluster',
+                                    featuresCol='featureVector')
+    preds = pipeline_model.transform(numeric_only)
+    score = evaluator.evaluate(preds)
+    return score
+
+
+for k in range(20, 100, 20):
+    print(k, clustering_score_2(numeric_only, k))
+
+
+def onehot_pipeline(input_col):
+    indexer = (StringIndexer()
+               .setInputCol(input_col)
+               .setOutputCol(f'{input_col}_indexed'))
+    encoder = (OneHotEncoder()
+               .setInputCol(f'{input_col}_indexed')
+               .setOutputCol(f'{input_col}_vec'))
+    pipeline = Pipeline().setStages([indexer, encoder])
+    return pipeline, f'{input_col}_vec'
+
+
