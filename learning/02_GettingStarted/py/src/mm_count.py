@@ -4,6 +4,7 @@ from pyspark.sql import SparkSession
 
 
 def main():
+    print('Python version:', sys.version)
     if len(sys.argv) != 2:
         print('Usage: mm_count [file]', file=sys.stderr)
         sys.exit(-1)
