@@ -1,3 +1,4 @@
+from math import log
 from pprint import pprint
 from random import randint
 
@@ -6,7 +7,9 @@ from pyspark.ml.clustering import KMeans, KMeansModel
 from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.ml.feature import (
     OneHotEncoder, StandardScaler, StringIndexer, VectorAssembler)
+from pyspark.spark.ml.linalg import Vector, Vectors
 from pyspark.sql import DataFrame
+from pyspark.sql.functions import collect_list
 
 
 # First take on clustering
@@ -141,3 +144,40 @@ def onehot_pipeline(input_col):
     return pipeline, f'{input_col}_vec'
 
 
+def entropy(counts):
+    vals = [v for v in vals if v > 0]
+    n = sum(vals)
+    p = [v / n for v in vals]
+    return sum([-p_v * log(p_v) for p_v in p])
+
+
+cluster_label = pipeline_model.transform(data).select('cluster', 'label')
+weighted_cluster_entropy = (cluster_label
+                            .groupBy(col('cluster'))
+                            .agg(collect_list('label')))
+print(sum(weighted_cluster_entropy) / data.count())
+
+# why not just throw in some functions not defined anywhere...?
+pipeline_mod = fit_pipeline_4(data, 180)
+count_by_cluster_label = (pipeline_mod
+                          .transform(data)
+                          .select('cluster', 'label')
+                          .groupBy('cluster', 'label')
+                          .count()
+                          .orderBy('cluster', 'label'))
+count_by_cluster_label.show()
+
+k_means_mod = pipeline_mod.stages[-1]
+centroids = k_means_mod.clusterCenters
+clustered = pipeline_mod.transform(data)
+threshold = (
+    clustered
+    .select('cluster', 'scaledFeatureVector')
+    .withColumn(
+        'dist_values',
+        Vectors.squared_distance(centroids(col('cluster')),
+                                 col('scaledFeatureVector')))
+    .orderBy(col('value').desc())
+    .last)
+
+# and text has remainder of chapter in Scala... nice!
