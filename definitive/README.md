@@ -12,3 +12,5 @@ To start a Spark shell:
 To run a standalone:
 `> spark-submit [file to run]`
 
+
+Spark UI (local mode): `http://localhost:4040`

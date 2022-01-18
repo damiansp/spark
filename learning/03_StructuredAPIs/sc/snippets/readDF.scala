@@ -1,3 +1,6 @@
+import org.apache.spark.sql.functions._
+
+
 val df = spark
   .read
   .option("samplingRation", 0.001)
@@ -49,3 +52,27 @@ val fewFireDF = fireDF
   .select("IncidentNumber", "AvailableDtTm", "CallType")
   .where(col("CallType" != "Medical Incident"))
 fewFireDF.show(5, false)
+
+fireDF.select("CallType")
+  .where(col("CallType").isNotNull)
+  .agg(countDistinct('CallType) as 'DistinctCallTypes)
+  .show()
+
+fireDF.select("CallType")
+  .where(col("CallType").isNotNull())
+  .distinct()
+  .show(10, false)
+
+val newFireDF = fireDF.withColumnRenamed("Delay", "ResponseDelayInMins")
+newFireDF.select("ResponseDelayInMins")
+  .where(col("ResponseDelayInMins") > 5)
+  .show(5, false)
+
+val fireTsDF = newFireDF
+  .withColumn("IncidentDate", to_timestamp(col("CallDate"), "MM/dd/yyyy"))
+  .drop("CallDate")
+  .withColumn("OnWatchDate", to_timestamp(col("WatchDate"), "MM/dd/yyyy"))
+  .drop("WatchDate")
+  .withColumn("AvailableDtTS", to_timestamp(col("AvailableDtTm"), "MM/dd/yyyy hh:mm:ss a"))
+  .drop("AvailableDtTm")
+fireTsDF.select("IncidentDate", "OnWatchDate", "AvailableDtTS").show(5, false)
