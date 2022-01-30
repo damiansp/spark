@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+import pyspark.sql.functions as F
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
@@ -75,3 +76,24 @@ fire_ts_df = (
                 to_timestamp(col('AvailableDtTm'), 'MM/dd/yyyy hh:mm:ss a'))
     .drop('AvailableDtTm'))
 fire_ts_df.select('IncidentDate', 'OnWatchDate', 'AvailableDtTS').show(5, False)
+fire_ts_df\
+    .select(year('IncidentDate'))\
+    .distinct()\
+    .orderBy(year('IncidentDate'))\
+    .show()
+
+# Aggregate
+fire_ts_df\
+    .select('CallType')\
+    .where(col('CallType').isNotNull())\
+    .groupBy('CallType')\
+    .count()\
+    .orderBy('count', ascending=False)\
+    .show(n=10, truncate=False)
+
+fire_ts_df.select(
+    F.sum('NumAlarms'),
+    F.avg('ResponseDelayInMins'),
+    F.min('ResponseDelayInMins'),
+    F.max('ResponseDelayInMins')
+).show()
