@@ -1,4 +1,5 @@
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{functions => F}
 
 
 val df = spark
@@ -76,3 +77,24 @@ val fireTsDF = newFireDF
   .withColumn("AvailableDtTS", to_timestamp(col("AvailableDtTm"), "MM/dd/yyyy hh:mm:ss a"))
   .drop("AvailableDtTm")
 fireTsDF.select("IncidentDate", "OnWatchDate", "AvailableDtTS").show(5, false)
+fireTsDF
+  .select(year(col("IncidentDate")))
+  .distinct()
+  .orderBy(year(col("IncidentDate")))
+  .show()
+
+// Aggregate
+fireTsDF
+  .select("CallType")
+  .where(col("CallType").isNotNull)
+  .groupBy("CallType")
+  .count()
+  .orderBy(desc("count"))
+  .show(10, false)
+
+fireTsDF.select(
+  F.sum("NumAlarms"),
+  F.avg("ResponseDelayedinMins"),
+  F.min("ResponseDelayedinMins"),
+  F.max("ResponseDelayedinMins")
+).show()
