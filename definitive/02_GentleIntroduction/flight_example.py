@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import desc, max as mx
 
 
 DATA = '../../data'
@@ -30,6 +31,23 @@ sql_way.explain()
 print('\ndf:\n')
 df_way.explain()
 
+print(spark.sql('SELECT MAX(count) FROM flight_data').take(1))
+print(data.select(mx('count')).take(1))
 
+max_sql = spark.sql('''
+    SELECT DEST_COUNTRY_NAME, SUM(count) AS dest_total
+    FROM flight_data
+    GROUP BY DEST_COUNTRY_NAME
+    ORDER BY SUM(count) DESC
+    LIMIT 5''')
+max_sql.show()
+
+data.show(5)
+data.groupBy('DEST_COUNTRY_NAME')\
+    .sum('count')\
+    .withColumnRenamed('sum(count)', 'dest_total')\
+    .sort(desc('dest_total'))\
+    .limit(5)\
+    .show()
 
 

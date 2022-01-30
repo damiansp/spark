@@ -1,4 +1,5 @@
-import org.apachespark.sql.SparkSession
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.max
 
 
 object FlightExample {
@@ -21,4 +22,15 @@ object FlightExample {
   val dfWay = data.groupBy('DEST_COUNTRY_NAME).count()
   println(sqlWay.explain)
   println(dfWay.explain)
+
+  println(spark.sql("SELECT MAX(count) FROM flightData").take(1))
+  println(data.select(max("count")).take(1))
+
+  val maxSql = spark.sql("""
+    SELECT DEST_COUNTRY_NAME, SUM(count) AS dest_total
+    FROM flightData
+    GROUP BY DEST_COUNTRY_NAME
+    ORDER BY SUM(count) DESC
+    LIMIT 5""")
+  maxSql.show()
 }
