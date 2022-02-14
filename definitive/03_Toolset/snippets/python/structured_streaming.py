@@ -25,10 +25,24 @@ streaming_df = (spark.readStream
                 .option('maxFilesPerTrigger', 1)
                 .format('csv')
                 .option('header', 'true')
-                .load(data_path)
+                .load(data_path))
 purchase_by_customer_per_hour = (
     streaming_df
     .selectExpr(
         'CustomerId', '(UnitPrice * Quantity) AS total_cost', 'InvoiceDate')
     .groupBy(col('CustomerId'), window(col('InvoiceDate'), '1 day'))
-    .sum('total_cost')
+    .sum('total_cost'))
+(purchase_by_customer_per_hour
+ .writeStream
+ .format('memory')
+ .queryName('customer_purchases')
+ .outputMode('complete')
+ .start())
+
+spark.sql('''
+    SELECT *
+    FROM cutomer_purchases
+    ORDER BY `SUM(total_cost)` DESC'''
+).show(5)
+
+                

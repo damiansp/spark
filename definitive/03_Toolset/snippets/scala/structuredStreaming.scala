@@ -25,7 +25,19 @@ val streamingDF = spark.readStream
   .load(dataPath)
 println(streamingDF.isStreaming) // true
 
-val purchaseByCustomerPerHours = streamingDF
+val purchaseByCustomerPerHour = streamingDF
   .selectExpr("CustomerId", "(UnitPrice * Quantity) AS total_cost", "InvoiceDate" )
   .groupBy($"CustomerId", window($"InvoiceDate", "1 day"))
   .sum("total_cost")
+purchaseByCustomerPerHour
+  .writeStream
+  .format("memory")
+  .queryName("customer_purchases")
+  .outputMode("complete")
+  .start()
+
+spark.sql("""
+  SELECT *
+  FROM customer_purchases
+  ORDER BY `SUM(total_cost)` DESC"""
+).show(5)
