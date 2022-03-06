@@ -103,3 +103,14 @@ spark.sql('SELECT * FROM origin_JFK_tmp_view')
 spark.catalog.dropGlobalTempView('origin_SFO_global_tmp_view')
 spark.catalog.dropTempView('origin_JFK_tmp_view')
 
+
+# Metadata
+spark.catalog.listDatabases()
+spark.catalog.listTables()
+spark.catalog.listColumns('flights')
+
+
+# Read table into DF
+flights_df = spark.sql('SELECT * FROM flights')  # or
+flights_df = spark.table('flights')
+
