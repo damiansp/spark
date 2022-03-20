@@ -41,3 +41,19 @@ df.first()
 my_row = Row('Hello', None, 1, False)
 my_row[0]
 my_row[2]
+
+
+# DF Transformations
+df = spark.read.format('json').load(path)
+df.createOrReplaceTempView
+
+my_schema = StructType([
+    StructField('some', StringType(), True),
+    StructField('col', StringType(), True),
+    StructField('names', LongType(), False)])
+my_row = Row('Hello', None, 1)
+my_df = spark.createDataFrame([my_row], my_schema)
+my_df.show()
+
+df.select('DEST_COUNTRY_NAME', 'ORIGIN_COUNTRY_NAME').show(2)
+
