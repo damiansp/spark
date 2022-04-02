@@ -31,3 +31,29 @@ df = spark.read.format('json').load(filepath)
 spark.sql('SELECT * FROM flights').show()
 
 df.write.format('json').mode('overwrite').save('/tmp/data/json/df.json')
+
+
+# CSV
+filepath = 'my/path/data/csv/*'
+schema = 'DEST_COUNTRY_NAME STRING, ORIGIN_COUNTRY_NAME STRING, count INT'
+df = (
+    spark.read.format('csv')
+    .option('header', 'true')
+    .schema(schema)
+    .option('mode', 'FAILFAST')
+    .option('nullValue', '')
+    .load(filepath))
+
+# SQL
+# CREATE OR REPLACE TEMPORARY VIEW flights
+# USING csv
+# OPTIONS (
+#   path "my/path/data/csv/*",
+#   header "true",
+#   inferSchema "true",
+#   mode "FAILFAST");
+
+spark.sql('SELECT * FROM flights').show(10)
+
+df.write.format('csv').mode('overwrite').save('/tmp/path/csv')
+

@@ -1,5 +1,5 @@
 from pyspark.sql import Row, SparkSession
-from pyspark.sql.functions import col, columns, expr
+from pyspark.sql.functions import col, column, columns, expr, lit
 from pyspark.sql.types import LongType, StringType, StructField, StructType
 
 
@@ -56,4 +56,22 @@ my_df = spark.createDataFrame([my_row], my_schema)
 my_df.show()
 
 df.select('DEST_COUNTRY_NAME', 'ORIGIN_COUNTRY_NAME').show(2)
+df.select(
+    expr('DEST_COUNTRY_NAME'),
+    col('DEST_COUNTRY_NAME'),
+    column('DEST_COUNTRY_NAME')
+).show(2)
+df.select(expr('DEST_COUNTRY_NAME AS dest')).show(2)
+df.select(expr('DEST_COUNTRY_NAME AS dest').alias('DEST_COUNTRY_NAME')).show(2)
+df.selectExpr('DEST_COUNTRY_NAME AS newColName', 'DEST_COUNTRY_NAME').show(2)
+df.selectExpr(
+    '*', 'DEST_COUNTRY_NAME = ORIGIN_COUNTRY_NAME) AS withinCountry'
+).show(2)
+df.selectExpr('AVG(count)', 'COUNT(DISTINCT(DEST_COUNTRY_NAME))').show(2)
 
+
+# Converting to Spark Types
+df.select(expr('*'), lit(1).alias('One')).show(2)
+
+
+# Adding Columns
