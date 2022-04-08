@@ -75,3 +75,22 @@ df.select(expr('*'), lit(1).alias('One')).show(2)
 
 
 # Adding Columns
+df.withColumn('intercept', lit(1)).show(2)
+df.withColumn('domestic', expr('ORIGIN_COUNTRY_NAME == DEST_COUNTRY_NAME'))
+df.withColumn('dest', expr('DEST_COUNTRY_NAME')).columns  # rename
+
+
+# Renaming Columns
+df.withColumnRenamed('DEST_COUNTRY_NAME', 'dest').columns
+
+
+# Reserved Chars/Keywords
+df_with_long_col_name = df.withColumn(
+    'This Long Column-Name', expr('ORIGIN_COUNTRY_NAME'))
+df_with_long_col_name.selectExpr(
+    '`This Long Column-Name`', '`This Long Column-Name` AS `new col`')
+
+
+# Removing Columns
+df.drop('ORIGIN_COUNTRY_NAME').columns
+df.drop('ORIGIN_COUNTRY_NAME', 'DEST_COUNTRY_NAME')
