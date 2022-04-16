@@ -1,3 +1,5 @@
+from pyspark.ml import image
+
 #(DataFrameWriter
 # .format(args)
 # .options(args)
@@ -57,3 +59,20 @@ spark.sql('SELECT * FROM flights').show(10)
 
 df.write.format('csv').mode('overwrite').save('/tmp/path/csv')
 
+
+# Images
+img_dir = 'path/to/images'
+img_df = spark.read.format('image').load(f'{img_dir}/')
+img_df.print_schema()
+
+img_df.select(
+    'image.height', 'image.width', 'image.nChanels', 'image.mode', 'label'
+).show(5)
+
+
+# Binaries
+binary_df = (
+    spark.read.format('binaryFile')
+    .option('pathGlobFilter', '*.jpg')
+    .option('recrusiveFileLookup', 'true')
+    .load('my/img/dir/'))

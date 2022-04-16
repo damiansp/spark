@@ -94,3 +94,30 @@ df_with_long_col_name.selectExpr(
 # Removing Columns
 df.drop('ORIGIN_COUNTRY_NAME').columns
 df.drop('ORIGIN_COUNTRY_NAME', 'DEST_COUNTRY_NAME')
+
+
+# Type Casting
+df.withColumn('count2', col('count').cast('long'))
+
+
+# Filtering Rows
+df.filter(col('count') < 2).show(2)
+df.where('count < 2').show(2)
+df.where(col('count') < 2).where(col('ORIGIN_COUNTRY_NAME') != 'Croatia')
+
+
+# Getting Unique Rows
+df.select('ORIGIN_COUNTRY_NAME').distinct().count()
+
+
+# Random Samples
+seed = 5
+with_replacement = False
+frac = 0.2
+df.sample(with_replacement, frac, seed)
+
+
+# Random Splits
+dfs = df.randomSplit([0.25, 0.75], seed)
+dfs[0].count()
+
