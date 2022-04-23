@@ -1,5 +1,5 @@
 from pyspark.sql import Row, SparkSession
-from pyspark.sql.functions import col, column, columns, expr, lit
+from pyspark.sql.functions import asc, col, column, columns, desc, expr, lit
 from pyspark.sql.types import LongType, StringType, StructField, StructType
 
 
@@ -121,3 +121,38 @@ df.sample(with_replacement, frac, seed)
 dfs = df.randomSplit([0.25, 0.75], seed)
 dfs[0].count()
 
+
+# Concatenating and Appending Rows
+schema = df.schema
+new_rows = [
+    Row('New Country', 'Other Country', 5L),
+    Row('New Country 2', 'Other Country 3', 1L)]
+parallelized_rows = spark.sparkContext.parallelize(new_rows)
+new_df = spark.createDataFrame(parallelized_rows, schema)
+
+# or
+(df
+ .union(new_df)
+ .where('count = 1')
+ .where(col('ORIGIN_COUNTRY_NAME') != 'United States')
+ .show())
+
+
+# Sorting Rows
+df.sort('count').show(5)
+df.orderBy('count', 'DEST_COUNTRY_NAME').show(5)
+df.orderBy(col('count'), col('DEST_COUNTRY_NAME')).show(5)
+
+df.orderBy(expr('count desc')).show(2)
+df.orderBy(col('count').desc(), col('DEST_COUNTRY_NAME').asc()).show(2)
+
+(spark
+ .read
+ .format('json')
+ .load('my/data/path.json')
+ .sortWithinPartitions('count'))
+
+
+# Limit
+df.limit(5).show()
+df.orderBy(expr('count desc')).limit(6).show()
