@@ -156,3 +156,19 @@ df.orderBy(col('count').desc(), col('DEST_COUNTRY_NAME').asc()).show(2)
 # Limit
 df.limit(5).show()
 df.orderBy(expr('count desc')).limit(6).show()
+
+
+# Repartition and Coalesce
+df.rdd.getNumPartitions()
+df.repartition(5)
+df.repartition(col('DEST_COUNTRY_NAME'))
+df.repartition(col('DEST_COUNTRY_NAME')).coalesce(2)
+
+
+# Collect Rows to Driver
+collect_df = df.limit(10)
+collect_df.take(5)
+collect_df.show()
+collect_df.show(5, False)
+collerct_df.collect()
+
