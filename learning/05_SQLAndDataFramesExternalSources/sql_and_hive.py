@@ -17,3 +17,8 @@ def cubed(a: pd.Series) -> pd.Series:
 
 cubed_udf = pandas_udf(cubed, returnType=LongType())
 
+x = pd.Series([1, 2, 3])
+print(cubed(x))
+
+df = spark.range(1, 4)
+df.select('id', cubed_udf(col('id'))).show()
