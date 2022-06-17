@@ -63,3 +63,18 @@ GROUP BY origin, destination;
 SELECT * FROM departureDelaysWindow
 '''
 
+
+spark.sql(
+    'SELECT origin, destination, total_delays, rank '
+    'FROM ('
+    '  SELECT origin, destination total_delays, dense_rank()'
+    '  OVER (PARTITION BY origin ORDER BY total_days DESC) AS rank'
+    '  FROM departureDelayWindow'
+    ') t '
+    'WHERE rank <= 3'
+).show()
+
+foo2 = foo.withColumn(
+    'status', expr("CASE WHEN delay <= 10 THEN 'on-time' ELSE 'delayed' END"))
+foo3 = foo2.drop('delay')
+foo4 = foo3.withColumnRenamed('status', 'flight_status')
