@@ -78,3 +78,25 @@ foo2 = foo.withColumn(
     'status', expr("CASE WHEN delay <= 10 THEN 'on-time' ELSE 'delayed' END"))
 foo3 = foo2.drop('delay')
 foo4 = foo3.withColumnRenamed('status', 'flight_status')
+
+
+# pivots
+'''
+SELECT destination, CAST(SUBSTRING(date, 0, 2) AS INT) AS month, delay
+FROM delays
+WHERE origin = 'SEA'
+'''
+
+'''
+SELECT * 
+FROM (
+  SELECT destination, CAST(SUBSTRING(date, 0, 2) AS INT) AS month, delay
+  FROM delays
+  WHERE origin = 'SEA'
+)
+PIVOT (
+  CAST(AVG(delay) AS DECIMAL(4, 2)) AS mean_delay, MAX(delay) AS max_delay
+  FOR month IN (1 JAN, 2 FEB)
+)
+ORDER BY destination
+'''
