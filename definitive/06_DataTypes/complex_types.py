@@ -1,4 +1,5 @@
-from pyspark.sql.functions import array_contains, explode, size, split, struct
+from pyspark.sql.functions import (
+    array_contains, create_map, explode, size, split, struct)
 
 
 df.selectExpr('(code, idn) AS complex', '*')
@@ -24,3 +25,15 @@ df.select(array_contains(split(col('field'), ' '), 'WHITE')).show(2)
  .select('field', 'other_field', 'exploded')
  .show(2))
 
+
+(df
+ .select(create_map(col('field'), col('other_field')).alias('complex_map'))
+ .show(2))
+(df
+ .select(map(col('field'), col('other_field')).alias('complex_map'))
+ .selectExpr("compled_map['key']")
+ .show(2))
+(df
+ .select(map(col('field'), col('other_field')).alias('complex_map'))
+ .selectExpr('explode(complex_map)')
+ .show(2))
