@@ -1,6 +1,8 @@
 from pyspark.sql.functions import (
-    approx_count_distinct, avg, count, countDistinct, expr, first, last,
-    max as sql_max, min as sql_min, sum as sql_sum, sumDistinct)
+    approx_count_distinct, avg, collect_list, collect_set,  corr, count,
+    countDistinct, covar_pop, covar_samp, expr, first, kurtosis, last,
+    max as sql_max, min as sql_min, skewness, stddev_pop, stddev_samp,
+    sum as sql_sum, sumDistinct, var_pop, var_samp)
 
 df = (
     spark
@@ -34,3 +36,15 @@ df.select(sumDistinct('Quantity')).show()
  .selectExpr(
      'total_sales / n_transactions', 'mean_sale', 'mean_sale_again')
  .show())
+
+df.select(
+    var_pop('Quantity'),
+    var_samp('Quantity'),
+    stddev_pop('Quantity'),
+    stddev_samp('Quantity'))
+df.select(skewness('Quality'), kurtosis('Quality'))
+df.select(
+    corr('Price', 'Quantity'),
+    covar_samp('Price', 'Quantity'),
+    covar_pop('Price', 'Quanity'))
+df.agg(collect_set('Country'), collect_set('Country'))
