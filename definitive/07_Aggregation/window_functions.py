@@ -27,3 +27,15 @@ purchase_rank = rank().over(window_spec)
      purchase_density_rank.alias('qty_dense_rank'),
      max_purchase_qty.alias('max_purchase_qty'))
  .show())
+
+df_no_null = df_with_date.drop()
+df_no_null.createOrReplaceTempView('df_no_null')
+
+rolled_up = (
+    df_no_null
+    .rollup('date', 'country')
+    .agg(sum('quantity'))
+    .selectExpr('date', 'country', '`SUM(quantity)` AS total_quantityy')
+    .orderBy('date'))
+rolled_up.show()
+
