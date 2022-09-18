@@ -16,3 +16,9 @@ spark_status = spark.createDateFrame([
 person.createOrReplaceTempView('person')
 grad_program.createOrReplaceTempView('grad_program')
 spark_status.createOrReplaceTempView('spark_status')
+
+
+# inner joins
+join_expr = person['graduate_program'] == grad_program['id']
+person.join(grad_program, join_expr, 'inner')
+
