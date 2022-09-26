@@ -22,3 +22,6 @@ spark_status.createOrReplaceTempView('spark_status')
 join_expr = person['graduate_program'] == grad_program['id']
 person.join(grad_program, join_expr, 'inner')
 
+
+# outer
+person.join(grad_program, join_expr, 'outer')
