@@ -25,3 +25,5 @@ person.join(grad_program, join_expr, 'inner')
 
 # outer
 person.join(grad_program, join_expr, 'outer')
+person.join(grad_program, join_expr, 'left_outer')
+person.join(grad_program, join_expr, 'right_outer')
