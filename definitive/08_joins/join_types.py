@@ -27,3 +27,10 @@ person.join(grad_program, join_expr, 'inner')
 person.join(grad_program, join_expr, 'outer')
 person.join(grad_program, join_expr, 'left_outer')
 person.join(grad_program, join_expr, 'right_outer')
+
+
+# semi
+# keep all rows in left if in right (doesn't actually join/return any data from
+# right)
+person.join(grad_program, join_expr, 'left_semi')
+
