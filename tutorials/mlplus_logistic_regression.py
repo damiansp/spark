@@ -16,6 +16,11 @@ def main():
     train_ds, test_ds = prep_data(df)
     log_reg = LogisticRegression(featuresCol='features', labelCol='label')
     mod = log_reg.fit(train_ds)
+    intercept = mod.intercept
+    coefs = mod.coefficients
+    print(f'Intercept: {intercept:.3f}')
+    print('Coefs:', coefs)
+    evaluate_model(mod, test_ds)
 
 
 def load_data():
@@ -43,6 +48,23 @@ def prep_data(df):
     data = assembler.transform(data)
     train, test = data.randomSplit([0.8, 0.2], seed=42)
     return train, test
+
+
+def evaluate_model(mod, test_ds):
+    preds = mod.transform(test_ds)
+    evaluator = BCEval(rawPredictionCol='rawPrediction', labelCol='label')
+    auc = evaluator.evaluate(preds)
+    multiclass_eval = MCEval(labelCol='label', predictionCol='prediction')
+    acc = multiclass_eval.evaluate(
+        preds, {multiclass_eval.metricName: 'accuracy'})
+    prec = multiclass_eval.evaluate(
+        preds, {multiclass_eval.metricName: 'weightedPrecision'})
+    rec = multiclass_eval.evaluate(
+        preds, {multiclass_eval.metricName: 'weightedRecall'})
+    print(f'AUC:  {auc:.4f}')
+    print(f'Acc:  {acc:.4f}')
+    print(f'Prec: {prec:.4f}')
+    print(f'Rec:  {rec:.4f}')
 
 
 if __name__ == '__main__':
