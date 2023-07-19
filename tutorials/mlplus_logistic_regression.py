@@ -1,6 +1,7 @@
 from pyspark import SparkFiles
 from pyspark.sql import SparkSession
-from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.classification import (
+    LogisticRegression, LogisticRegressionModel)
 from pyspark.ml.evaluation import (
     BinaryClassificationEvaluator as BCEval,
     MulticlassClassificationEvaluator as MCEval)
@@ -21,6 +22,8 @@ def main():
     print(f'Intercept: {intercept:.3f}')
     print('Coefs:', coefs)
     evaluate_model(mod, test_ds)
+    mod.save('test_mod')
+    mod = LogisticRegressionModel.load('test_mod')
 
 
 def load_data():
