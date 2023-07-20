@@ -24,7 +24,7 @@ def main():
     evaluate_model(mod, test_ds)
     mod.save('test_mod')
     mod = LogisticRegressionModel.load('test_mod')
-
+    
 
 def load_data():
     url = (
