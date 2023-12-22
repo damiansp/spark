@@ -1,0 +1,5 @@
+Just some text.
+This is a file to be read by the simple app.
+Some more text.
+Oh what a beautiful morning.
+Oh what a beautiful day.
