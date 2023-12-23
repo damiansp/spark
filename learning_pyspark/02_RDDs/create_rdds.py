@@ -2,19 +2,19 @@ import re
 import numpy as np
 
 from pyspark import SparkConf, SparkContext
-from pyspark.sql import SparkSession
 
 
 conf = SparkConf()
 sc = SparkContext(conf=conf)
 data = sc.parallelize([
     ('Amber', 22), ('Alfred', 23), ('Skye', 4), ('Albert', 12), ('Amber', 9)])
-data_from_file = sc.textFilie('../data/VS14MORT.txt.gz', 4)
+data_from_file = sc.textFile('../data/VS14MORT.txt.gz', 4)
 print(data_from_file.take(1))
 data_hetero = sc.parallelize(
     [('Ferrari', 'fast'), {'Porsche': 100_000}, ['Spain', 'visited', 4504]]
 ).collect()
-print(data_hetero[1]['Porshche'])
+print(data_hetero[1]['Porsche'])
+
 
 
 def extract_info(row):
@@ -50,3 +50,22 @@ def extract_info(row):
         rs = np.array(['-99'] * len(selected_indices))
     return rs
 
+
+data_from_file_conv = data_from_file.map(extract_info)
+print(data_from_file_conv.map(lambda row: row).take(1))
+
+data_2014 = data_from_file_conv.map(lambda row: int(row[16]))
+print(data_2014.take(10))
+
+data_2014_2 = data_from_file_conv.map(lambda row: (int(row[16]), int(row[16])))
+print(data_2014_2.take(10))
+
+data_filtered = data_from_file_conv.filter(
+    lambda row: row[16] == '2014' and row[21] == 'O')
+print(data_filtered.count())
+
+data_2014_flat = data_from_file_conv.flatMap(
+    lambda row: (row[16], int(row[16] + 1)))
+
+
+    
