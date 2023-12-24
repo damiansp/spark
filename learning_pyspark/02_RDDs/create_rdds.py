@@ -67,5 +67,13 @@ print(data_filtered.count())
 data_2014_flat = data_from_file_conv.flatMap(
     lambda row: (row[16], int(row[16] + 1)))
 
+distinct_gender = data_from_file_conv.map(lambda row: row[5]).distinct()
+print(distinct_gender.collect())
 
-    
+frac = 0.1
+data_sample = data_from_file_conv(False, frac, 666)  # w/replmnt, frac, seed
+
+
+rdd1 = sc.parallelize([('a', 1), ('b', 4), ('c', 10)])
+rdd2 = sc.parallelize([('a', 4), ('a', 1), ('b', 6), ('d', 15)])
+rdd3 = rdd1.leftOuterJoin(rdd2)
