@@ -77,3 +77,8 @@ data_sample = data_from_file_conv(False, frac, 666)  # w/replmnt, frac, seed
 rdd1 = sc.parallelize([('a', 1), ('b', 4), ('c', 10)])
 rdd2 = sc.parallelize([('a', 4), ('a', 1), ('b', 6), ('d', 15)])
 rdd3 = rdd1.leftOuterJoin(rdd2)
+rdd4 = rd1.join(rdd2)
+rdd5 = rdd1.intersection(rdd2)
+
+rdd1 = rdd1.repartition(4)
+print(len(rdd1.glom().collect()))
