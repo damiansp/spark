@@ -82,3 +82,9 @@ rdd5 = rdd1.intersection(rdd2)
 
 rdd1 = rdd1.repartition(4)
 print(len(rdd1.glom().collect()))
+
+
+first_row = data_from_file_conv.take(1)
+# also .takeSamplie(with_replacement, n_records, seed)
+
+colsum = rdd1.map(lambda row: row[1]).reduce(lambda x, y: x + y)
