@@ -88,3 +88,11 @@ first_row = data_from_file_conv.take(1)
 # also .takeSamplie(with_replacement, n_records, seed)
 
 colsum = rdd1.map(lambda row: row[1]).reduce(lambda x, y: x + y)
+
+# Do:
+print(data.count())
+# Do NOT:
+print(len(data.collect()))
+
+
+print(data.countByKey().items())
