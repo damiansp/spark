@@ -96,3 +96,10 @@ print(len(data.collect()))
 
 
 print(data.countByKey().items())
+
+
+def my_print(x):
+    print(x)
+
+
+data.foreach(my_print)
