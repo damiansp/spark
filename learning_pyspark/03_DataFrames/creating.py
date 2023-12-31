@@ -31,3 +31,6 @@ schema = StructType([
 swimmers = spark.createDataFrame(csv_rdd, schema)
 swimmers.createOrReplaceTempView('swimmers')
 swimmers.printSchema()
+print(swimmers.count())
+swimmers.select('id', 'age').filter('age >= 22').show()
+swimmers.select('name', 'eyes').filter("eyes LIKE 'b%'").show()

@@ -41,6 +41,6 @@ schema_headers = ['name', 'age']
 fields = [StructField(f, StringType(), True) for f in schema_headers]
 schema = StructType(fields)
 people = spark.createDataFrame(people, schema)
-people.createOrReplaceView('people')
+people.createOrReplaceTempView('people')
 res = spark.sql('SELECT name FROM people')
 res.show()
