@@ -1,5 +1,7 @@
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
+from pyspark.sql.types import LongType, StringType, StructField, StructType
+
 
 conf = SparkConf()
 sc = SparkContext(conf=conf)
@@ -11,7 +13,21 @@ json_str3 = '{"id": "345", "name": "Simone", "age": 23, "eyes": "blue"}'
 json_rdd = sc.parallelize((json_str1, json_str2, json_str3))
 df = spark.read.json(json_rdd)
 df.show()
+df.printSchema()
 
 # create a temp table
 df.createOrReplaceTempView('swimmers')
 print(spark.sql('SELECT * FROM swimmers').collect())
+
+csv_rdd = sc.parallelize([
+    (123, 'Katie', 19, 'brown'),
+    (234, 'Michael', 22, 'green'),
+    (345, 'Simone', 23, 'blue')])
+schema = StructType([
+    StructField('id', LongType(), True),
+    StructField('name', StringType(), True),
+    StructField('age', LongType(), True),
+    StructField('eyes', StringType(), True)])
+swimmers = spark.createDataFrame(csv_rdd, schema)
+swimmers.createOrReplaceTempView('swimmers')
+swimmers.printSchema()
