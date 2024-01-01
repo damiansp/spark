@@ -34,3 +34,7 @@ swimmers.printSchema()
 print(swimmers.count())
 swimmers.select('id', 'age').filter('age >= 22').show()
 swimmers.select('name', 'eyes').filter("eyes LIKE 'b%'").show()
+
+spark.sql('SELECT COUNT(1) FROM swimmers').show()
+spark.sql('SELECT id, age FROM swimmers WHERE age >= 22').show()
+spark.sql("SELECT name, eyes FROM swimmers WHERE eyes LIKE 'b%'").show()
