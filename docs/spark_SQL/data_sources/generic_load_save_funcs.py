@@ -12,3 +12,21 @@ df = spark.read.load(
 
 # Run SQL on files directly
 df = spark.sql('SELECT * FROM parquet.`path/to/my_file.parquet`')
+
+
+# Bucketing, Sorting
+df.write.bucketBy(42, 'name').sortBy('age').saveAsTable('people_buckets')
+
+
+# Partitioning
+(df
+ .write
+ .partitionBy('color')
+ .format('parquet')
+ .save('names_colorparts.parquet'))
+
+(df
+ .write
+ .partitionBy('color')
+ .bucketBy(42, 'name')
+ .saveAsTable('users_partsandbuckets'))
