@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, expr
+from pyspark.sql.functions import col, concat, expr
 
 
 schema = (
@@ -24,3 +24,8 @@ if __name__ == '__main__':
     blogs_df.select(expr('hits * 2')).show()
     blogs_df.select(col('hits') * 2).show()
     blogs_df.withColumn('big_hitter', col('hits') > 10_000).show()
+    (blogs_df
+     .withColumn('auth_id', concat(col('last'), col('first'), col('id')))
+     .select(col('auth_id'))
+     .show())
+    blogs_df.sort(col('id').desc()).show()
