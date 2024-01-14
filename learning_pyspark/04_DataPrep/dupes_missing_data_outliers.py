@@ -28,3 +28,18 @@ df = df.dropDuplicates(subset=[c for c in df.columns if c != 'id'])
  .agg(count('id').alias('count'), countDistinct('id').alias('distinct'))
  .show())
 df.withColumn('new_id', monotonically_increasing_id()).show()
+
+df_missing = spark.createDataFrame(
+    [(1, 144.5, 5.9, 33, 'M', 100_000),
+     (2, 167.2, 5.4, 45, 'M', None),
+     (3, None, 5.2, None, None, None),
+     (4, 144.5, 5.9, 33, 'M', None),
+     (5, 133.2, 5.7, 54, 'F', None),
+     (3, 124.1, 5.2, 23, 'F', None),
+     (5, 129.2, 5.3, 42, 'M', 76_000)],
+    ['id', 'weight', 'height', 'age', 'gender', 'income'])
+print(
+    df_missing
+    .rdd
+    .map(lambda row: (row['id'], sum([c is None for c in row])))
+    .collect())
