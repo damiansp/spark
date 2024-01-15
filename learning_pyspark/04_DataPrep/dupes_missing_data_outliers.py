@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
-    count, countDistinct, monotonically_increasing_id)
+    count, countDistinct, mean, monotonically_increasing_id)
 
 
 spark = SparkSession.builder.appName('Dupes Missing Outliers').getOrCreate()
@@ -53,3 +53,10 @@ df_missing = df_missing.select(
     [c for c in df_missing.columns if c != 'income'])
 df_missing.dropna(thresh=3).show()
 
+means = (
+    df_missing
+    .agg(*[mean(c).alias(c) for c in df_missing.columns if c != 'gender'])
+    .toPandas()
+    .to_dict('records')[0])
+means['gender'] = 'missing'
+df_missing.fillna(means).show()
