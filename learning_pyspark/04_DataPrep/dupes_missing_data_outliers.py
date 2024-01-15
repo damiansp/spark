@@ -43,3 +43,13 @@ print(
     .rdd
     .map(lambda row: (row['id'], sum([c is None for c in row])))
     .collect())
+# pct missing per col
+df_missing.agg(
+    *[(1 - count(c) / count('*')).alias(f'{c}_missing')
+      for c in df_missing.columns]
+).show()
+# drop col
+df_missing = df_missing.select(
+    [c for c in df_missing.columns if c != 'income'])
+df_missing.dropna(thresh=3).show()
+
