@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, countDistinct
 from pyspark.sql.types import (
     BooleanType, FloatType, IntegerType, StringType, StructField, StructType)
 
@@ -39,3 +40,25 @@ fire_schema = StructType([
 path = f'{DATA}/sf-fire/sf-fire-calls.csv'
 fire_df = spark.read.csv(path, header=True, schema=fire_schema)
 fire_df.show()
+
+
+# Save (parquet)
+#outpath = f'{DATA}/sf-fire/parquet'
+#fire_df.write.format('parquet').save(outpath)
+
+#parquet_table = 'myschema.mytable'
+#fire_df.write.format('parquet').saveAsTable(parquet_table)
+
+
+# projections/filters
+few_fire_df = (
+    fire_df
+    .select('incident_number', 'available_dt_tm', 'call_type')
+    .where(col('call_type') != 'Medical Incident'))
+few_fire_df.show(5, truncate=False)
+(fire_df
+ .select('call_type')
+ .where(col('call_type').isNotNull())
+ .agg(countDistinct('call_type').alias('distinct_call_types'))
+ .show())
+
