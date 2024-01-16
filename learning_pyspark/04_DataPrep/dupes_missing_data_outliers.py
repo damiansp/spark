@@ -72,3 +72,17 @@ df = spark.createDataFrame(
      (6, 124.1, 5.2, 23, 'F'),
      (7, 129.2, 5.3, 42, 'M')],
     ['id', 'weight', 'height', 'age', 'gender'])
+cols = ['weight', 'height', 'age']
+bounds = {}
+for c in cols:
+    qs = df.approxQuantile(c, [0.25, 0.75], 0.05)
+    iqr = qs[1] - qs[0]
+    bounds[c] = [qs[0] - 1.5*iqr, qs[1] + 1.5*iqr]
+outliers = df.select(
+    *['id'] +
+    [((df[c] < bounds[c][0]) | (df[c] > bounds[c][1])).alias(f'{c}_o')
+     for c in cols])
+outliers.show()
+df = df.join(outliers, on='id')
+df.filter('weight_o').select('id', 'weight').show()
+df.filter('age_o').select('id', 'age').show()
