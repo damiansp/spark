@@ -61,4 +61,15 @@ few_fire_df.show(5, truncate=False)
  .where(col('call_type').isNotNull())
  .agg(countDistinct('call_type').alias('distinct_call_types'))
  .show())
+(fire_df
+ .select('call_type')
+ .where(col('call_type').isNotNull())
+ .distinct()
+ .show(10, False))
 
+# Renaming, adding/dropping cols
+new_fire_df = fire_df.withColumnRenamed('delay', 'response_delay_mins')
+(new_fire_df
+ .select('response_delay_mins')
+ .where(col('response_delay_mins') > 5)
+ .show(5, False))
