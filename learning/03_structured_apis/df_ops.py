@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, countDistinct
+from pyspark.sql.functions import col, countDistinct, to_timestamp, year
 from pyspark.sql.types import (
     BooleanType, FloatType, IntegerType, StringType, StructField, StructType)
 
@@ -73,3 +73,23 @@ new_fire_df = fire_df.withColumnRenamed('delay', 'response_delay_mins')
  .select('response_delay_mins')
  .where(col('response_delay_mins') > 5)
  .show(5, False))
+
+fire_ts_df = (
+    new_fire_df
+    .withColumn('incident_date', to_timestamp(col('call_date'), 'MM/dd/yyyy'))
+    .drop('call_date')
+    .withColumn('on_watch_date', to_timestamp(col('watch_date'), 'MM/dd/yyyy'))
+    .drop('watch_date')
+    .withColumn(
+        'available_dt_ts',
+        to_timestamp(col('available_dt_tm'), 'MM/dd/yyyy hh:mm:ss a'))
+    .drop('available_dt_tm'))
+(fire_ts_df
+ .select('incident_date', 'on_watch_date', 'available_dt_ts')
+ .show(5, False))
+
+(fire_ts_df
+ .select(year('incident_date'))
+ .distinct()
+ .orderBy(year('incident_date'))
+ .show())
