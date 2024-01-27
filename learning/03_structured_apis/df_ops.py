@@ -1,5 +1,7 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, countDistinct, to_timestamp, year
+from pyspark.sql.functions import (
+    avg, col, countDistinct, sum as ssum, min as smin, max as smax,
+    to_timestamp, year)
 from pyspark.sql.types import (
     BooleanType, FloatType, IntegerType, StringType, StructField, StructType)
 
@@ -92,4 +94,24 @@ fire_ts_df = (
  .select(year('incident_date'))
  .distinct()
  .orderBy(year('incident_date'))
+ .show())
+
+
+# Agg
+(fire_ts_df
+ .select('call_type')
+ .where(col('call_type').isNotNull())
+ .groupBy('call_type')
+ .count()                            # prefer count/take to collect
+ .orderBy('count', ascending=False)
+ .show(n=10, truncate=False))
+
+
+# Other commmon ops
+(fire_ts_df
+ .select(
+     ssum('n_alarms'),
+     avg('response_delay_mins'),
+     smin('response_delay_mins'),
+     smax('response_delay_mins'))
  .show())
