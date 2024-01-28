@@ -8,7 +8,7 @@ spark = SparkSession.builder.appName('Exploration').getOrCreate()
 sc = spark.sparkContext
 
 
-fraud = sc.textFile('ccFraud.csv.gz')
+fraud = sc.textFile(f'{DATA}/ccFraud.csv.gz')
 header = fraud.first()
 fraud = (
     fraud
@@ -17,3 +17,7 @@ fraud = (
 fields = [
     *[StructField(h[1:-1], IntegerType(), True) for h in header.split(',')]]
 schema = StructType(fields)
+fraud_df = spark.createDataFrame(fraud, schema)
+fraud_df.printSchema()
+
+fraud_df.groupby('gender').count().show()
