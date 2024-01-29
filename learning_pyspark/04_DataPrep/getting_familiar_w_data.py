@@ -21,3 +21,9 @@ fraud_df = spark.createDataFrame(fraud, schema)
 fraud_df.printSchema()
 
 fraud_df.groupby('gender').count().show()
+numerics = ['balance', 'numTrans', 'numIntlTrans']
+fraud_df.describe(numerics).show()
+fraud_df.agg({'balance': 'skewness'}).show()
+
+
+# Correlation
