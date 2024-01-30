@@ -8,3 +8,8 @@ target/
 
 *.csv
 *.dbc
+
+
+# Python
+__pycache__/
+*.pyc
