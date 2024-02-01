@@ -27,3 +27,12 @@ fraud_df.agg({'balance': 'skewness'}).show()
 
 
 # Correlation
+print(fraud_df.corr('balance', 'numTrans'))
+n_num = len(numerics)
+corr = []
+for i in range(n_num):
+    temp = [None] * i
+    for j in range(i, n_num):
+        temp.append(fraud_df.corr(numerics[i], numerics[j]))
+    corr.append(temp)
+print(corr)
