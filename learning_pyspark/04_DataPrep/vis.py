@@ -32,3 +32,13 @@ data = {'bins': hists[0][:-1], 'freq': hists[1]}
 plt.bar(data['bins'], data['freq'], width=2000)
 plt.title('Balance')
 plt.show()
+
+
+# Scatterplot
+numeric = ['balance', 'numTrans', 'numIntlTrans']
+sample = fraud_df.sample_by('gender', {1: 0.0002, 2: 0.0002}).select(numeric)
+data_multi = dict([
+    (elem, sample.select(elem).rdd.flatMap(lambda row: row).collect())
+    for elem in numeric])
+#scat = chrt.Scatter(data_multi, x='balance', y='numTrans')
+#chrt.show(scat)
