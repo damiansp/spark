@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, desc
 
 
 DATA = '../../data/databricks-datasets/learning-spark-v2/flights'
@@ -26,3 +27,10 @@ spark.sql(
     ORDER BY delay DESC'''
 ).show(10)
     
+
+(df
+ .select('distance', 'origin', 'destination')
+ .where(col('distance') > 1000)  # where('distance > 1000')
+ .orderBy(desc('distance'))      # orderBy('distance', ascending=False)
+).show(10)
+
