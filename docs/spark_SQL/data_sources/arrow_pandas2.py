@@ -1,7 +1,7 @@
 from typing import Iterator
 
 from pyspark.sql import SparkSession, Window
-from pyspark.sql.functions import col, pandas_udf
+from pyspark.sql.functions import col, pandas_udf, udf
 from pyspark.sql.types import LongType
 
 import pandas as pd
@@ -130,10 +130,18 @@ def merge_ordered(left: pd.DataFrame, right: pd.DataFrame) -> pd.DataFrame:
 
 
 # Arrow Python UDFs
-    
+@udf(returnType='int')
+def slen(s):
+    return len(s)
 
 
+@udf(returnType='int', useArrow=True)
+def arrow_slen(s):
+    return len(s)
 
+
+df = spark.createDataFrame([(1, 'Johnny D', 32)], ('id', 'name', 'age'))
+df.select(slen('name'), arrow_slen('name')).show()
 
 
 
