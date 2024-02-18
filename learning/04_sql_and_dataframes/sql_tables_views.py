@@ -25,10 +25,33 @@ spark.sql(
     USING csv
     OPTIONS (PATH {data_file})''')
 (flights_f
- .write.options('path', '/tmp/data/flights')
+ .write.options('path', '/tmp/data/flights_unmng')
  .saveAsTable('flights_unmng'))
 
 
-
 # Creating Views
+sfo_df = spark.sql(
+    "SELECT date, delay, origin, destination "
+    "FROM flights_unmng "
+    "WHERE origin = 'SFO'")
+jfk_df = spark.sql(
+    "SELECT date, delay, origin, destination "
+    "FROM flights_unmng "
+    "WHERE origin = 'JFK'")
+sfo_df.createOrReplaceGlobalTempView('sfo')
+jfk_df.createOrReplaceTempView('jfk')
 
+spark.sql('SELECT * FROM jfk LIMIT 10').show()
+spark.catalog.dropGlobalTempView('sfo')
+spark.catalog.dropTempView('jfk')
+
+
+# Viewing metadata
+spark.catalog.listDatabases()
+spark.catalog.listTables()
+spark.catalog.listColumns('flights')
+
+
+# Reading tables into DFs
+us_flights_df = spark.sql('SELECT * FROM flights')
+us_flights_df2 = spark.table('flights')
