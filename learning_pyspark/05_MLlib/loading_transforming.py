@@ -1,9 +1,10 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, udf, when
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
 
 DATA = '../data'
-spark = SparkSession.builider.appName('LoadTransform').getOrCreate()
+spark = SparkSession.builder.appName('LoadTransform').getOrCreate()
 labels = [
     ('INFANT_ALIVE_AT_REPORT', StringType()),
     ('BIRTH_YEAR', IntegerType()),
@@ -59,8 +60,27 @@ labels = [
     ('INFANT_SUSPECTED_CHROMOSOMAL_DISORDER', StringType()),
     ('INFANT_NO_CONGENITAL_ANOMALIES_CHECKED', StringType()),
     ('INFANT_BREASTFED', StringType())]
-schema = typ.StructType([typ.StructField(e[0], e[1], False) for e in labels])
+schema = StructType([StructField(e[0], e[1], False) for e in labels])
 births = spark.read.csv(
     f'{DATA}/births_train.csv.gz', header=True, schema=schema)
 recoder = {'YNU': {'Y': 1, 'N': 0, 'U': 0}}
+use = (
+    'infant_alive_at_report birth_place mother_age_years father_combined_age '
+    'cig_before cig_1_tri cig_2_tri cig_3_tri mother_height_in '
+    'mother_pre_weight mother_weight_gain diabetes_pre diabetes_gest '
+    'hyp_tens_pre hyp_tens_gest prev_birth_preterm'
+).upper().split()
+births_trimmed = births.select(use)
+
+
+def recode(field, key):
+    return recoder[key][field]
+
+
+recode_int = udf(recode, IntegerType())
+
+
+def correct_cig(field):
+    return when(col(field) != 99, col(field)).otherwise(0)
+
 
