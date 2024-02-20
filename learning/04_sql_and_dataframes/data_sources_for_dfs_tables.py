@@ -21,9 +21,28 @@ df = spark.read.format('json').load(json_dir)
 
 
 # DF Writer
-df.write.format('json').mode('overwriete').save('my/location') #.partitionBy()
+df.write.format('json').mode('overwrite').save('my/location') #.partitionBy()
 
 
 # Parquet
 # Reading to DF
 df = spark.read.format('parquet').load(parquet_dir)
+
+
+# Read Parquet to SQL Table
+#CREATE OR REPLACE TEMPORARY VIEW flights
+#USING parquet
+#OPTIONS (path "my/path/to/myfile.parquet/")
+spark.sql('SELECT * FROM flights').show()
+
+
+# Write DF to Parquet
+(df
+ .write.format('parquet')  # .format('parquet') is default/optional
+ .mode('overwrite')
+ .option('compression', 'snappy')
+ .save('/tmp/data/parquet'))
+
+
+# Write DF to SQL Table
+df.write.mode('overwrite').saveAsTable('flights')
