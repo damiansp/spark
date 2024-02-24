@@ -46,3 +46,15 @@ spark.sql('SELECT * FROM flights').show()
 
 # Write DF to SQL Table
 df.write.mode('overwrite').saveAsTable('flights')
+
+
+# JSON
+jfile = 'path/to/json/dir/*'
+df = spark.read.format('json').load(jfile)
+
+# Write DF to JSON
+(df
+ .write.format('json')
+ .mode('overwrite')
+ .option('snappy')
+ .save('/tmp/data/json_df'))
