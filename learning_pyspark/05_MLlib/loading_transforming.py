@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, udf, when
+from pyspark.sql.functions import col, lit, udf, when
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
 
@@ -84,3 +84,23 @@ def correct_cig(field):
     return when(col(field) != 99, col(field)).otherwise(0)
 
 
+births_trans = (
+    births_trimmed
+    .withColumn('CIG_BEFORE', correct_cig('CIG_BEFORE'))
+    .withColumn('CIG_1_TRI', correct_cig('CIG_1_TRI'))
+    .withColumn('CIG_2_TRI', correct_cig('CIG_2_TRI'))
+    .withColumn('CIG_3_TRI', correct_cig('CIG_3_TRI')))
+cols = [(col.name, col.dataType) for col in births_trimmed.schema]
+YNU_cols = []
+for i, s in enumerate(cols):
+    if s[1] == StringType():
+        dist = (
+            births
+            .select(s[0])
+            .distinct()
+            .rdd.map(lambda row: row[0])
+            .collect())
+        if 'Y' in dis:
+            YNU_cols.append(s[0])
+INA = 'INFANT_NICU_ADMISSION'
+births.select([INA, recode(INA, lit('YNU')).alias(f'{INA}_RECODE')]).take(5)
