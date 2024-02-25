@@ -1,3 +1,5 @@
+import numpy as np
+import pyspark.mllib.stat as st
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, udf, when
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
@@ -109,3 +111,16 @@ exprs_YNU = [
     for x in births_trans.columns]
 births_trans = births_trans.select(exprs_YNU)
 births_trans.select(YNU_cols[-5:]).show(5)
+
+
+# Descriptive Stats
+numerics = [
+    'MOTHER_AGE_YEARS', 'FATHER_COMBINED_AGE', 'CIG_BEFORE', 'CIG_1_TRI',
+    'CIG_2_TRI', 'CIG_3_TRI', 'MOTHER_HEIGHT_IN', 'MOTHER_PRE_WEIGHT',
+    'MOTHER_DELIVERY_WEIGHT', 'MOTHER_WEIGHT_GAIN']
+numeric_rdd = (
+    births_trans.select(numerics).rdd.map(lambda row: [e for e in row]))
+stats = st.Statistics.colStats(numeric_rdd)
+for col, mu, sig in zip(numerics, stats.mean(), stats.variance()):
+    print(f'{col}:\t{mu:.2f}\t{sig:.sf}')
+
