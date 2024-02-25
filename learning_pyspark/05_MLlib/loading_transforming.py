@@ -100,7 +100,12 @@ for i, s in enumerate(cols):
             .distinct()
             .rdd.map(lambda row: row[0])
             .collect())
-        if 'Y' in dis:
+        if 'Y' in dist:
             YNU_cols.append(s[0])
 INA = 'INFANT_NICU_ADMISSION'
 births.select([INA, recode(INA, lit('YNU')).alias(f'{INA}_RECODE')]).take(5)
+exprs_YNU = [
+    recode(x, lit('YNU')).alias(x) if x in YNU_cols else x
+    for x in births_trans.columns]
+births_trans = births_trans.select(exprs_YNU)
+births_trans.select(YNU_cols[-5:]).show(5)
