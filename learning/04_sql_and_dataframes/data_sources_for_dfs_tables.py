@@ -43,7 +43,6 @@ spark.sql('SELECT * FROM flights').show()
  .option('compression', 'snappy')
  .save('/tmp/data/parquet'))
 
-
 # Write DF to SQL Table
 df.write.mode('overwrite').saveAsTable('flights')
 
@@ -51,8 +50,6 @@ df.write.mode('overwrite').saveAsTable('flights')
 # JSON
 jfile = 'path/to/json/dir/*'
 df = spark.read.format('json').load(jfile)
-
-# Write DF to JSON
 (df
  .write.format('json')
  .mode('overwrite')
@@ -71,13 +68,23 @@ df = (
     .option('mode', 'FAILFAST')
     .option('nullValue', '')
     .load(cfile))
-
-# Write DF to csv
 df.write.format('csv').mode('overwrite').save('/tmp/data/csv_df')
 
 
 # Avro
 df = spark.read.format('avro').load('path/to/my/avro_dir/*')
-
-# Write DF to Avro
 df.write.format('avro').mode('overwrite').save('/tmp/data/avro')
+
+
+# Binaries
+path = 'path/to/my/imgs/'
+df = (
+    spark.read.format('binaryFile')
+    .option('pathGlobFilter', '*.jpg')
+    .load(path))
+
+df = (
+    spark.read.format('binaryFile')
+    .option('pathGlobFilter', '*.jpg')
+    .option('recursiveFileLookup', 'true')
+    .load(path))
