@@ -58,3 +58,19 @@ df = spark.read.format('json').load(jfile)
  .mode('overwrite')
  .option('snappy')
  .save('/tmp/data/json_df'))
+
+
+# CSV
+cfile = 'path/to/my/csv/dir/*'
+schema = 'DEST_COUNTRY_NAME STRING, ORIGIN_COUNTRY_NAME STRING, count INT'
+df = (
+    spark
+    .read.format('csv')
+    .option('header', 'true')
+    .schema(schema)
+    .option('mode', 'FAILFAST')
+    .option('nullValue', '')
+    .load(cfile))
+
+# Write DF to csv
+df.write.format('csv').mode('overwrite').save('/tmp/data/csv_df')
