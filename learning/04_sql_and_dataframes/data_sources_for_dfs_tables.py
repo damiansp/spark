@@ -74,3 +74,10 @@ df = (
 
 # Write DF to csv
 df.write.format('csv').mode('overwrite').save('/tmp/data/csv_df')
+
+
+# Avro
+df = spark.read.format('avro').load('path/to/my/avro_dir/*')
+
+# Write DF to Avro
+df.write.format('avro').mode('overwrite').save('/tmp/data/avro')
