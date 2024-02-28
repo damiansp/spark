@@ -124,3 +124,24 @@ stats = st.Statistics.colStats(numeric_rdd)
 for col, mu, sig in zip(numerics, stats.mean(), stats.variance()):
     print(f'{col}:\t{mu:.2f}\t{sig:.sf}')
 
+categoricals = [e for e in births_trans.columns if e not in numerics]
+categorical_rdd = (
+    births_trans.select(categorical).rdd.map(lambda row: [e for e in row]))
+for i, col in enumerate(categoricals):
+    agg = (
+        categorical_rdd
+        .groupBy(lambda row: row[i])
+        .map(lambda row: (row[0], len(row[1]))))
+    print(col, sorted(agg.collect(), key=lambda e: e[1], reverse=True))
+
+
+# Correlations
+corrs = st.Statistics.corr(numeric_rdd)
+for i, el in enumerat(corrs > 0.5):
+    correlated = [
+        (numerics[j], corrs[i][j]) for j, e in enumerate(el)
+        if e == 1. and j!= i]
+    if correlated:
+        for e in correlated:
+            print(f'{numerics[i]}-to{e[0]}: {e[1]:.2f}')
+
