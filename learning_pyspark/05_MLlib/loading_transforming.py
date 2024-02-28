@@ -1,4 +1,5 @@
 import numpy as np
+import pyspark.mllib.linalg as la
 import pyspark.mllib.stat as st
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, udf, when
@@ -145,3 +146,24 @@ for i, el in enumerat(corrs > 0.5):
         for e in correlated:
             print(f'{numerics[i]}-to{e[0]}: {e[1]:.2f}')
 
+keep = [
+    'INFANT_ALIVE_AT_REPORT', 'BIRTH_PLACE', 'MOTHER_AGE_YEARS',
+    'FATHER_COMBINED_AGE', 'CIG_1_TRI', 'MOTHER_HEIGHT_IN',
+    'MOTHER_PRE_WEIGHT', 'DIABETES_PRE', 'DIABETES_GEST', 'HYP_TENS_PRE',
+    'HYP_TENS_GEST', 'PREV_BIRTH_PRETERM']
+births_trans = births_trans.select(keep)  # *keep?
+
+
+# Statistical testing
+for cat in categoricals[1:]:
+    agg = births_trans.groupby('INFANT_ALIVE_AT_REPORT').pivot(cat).count()
+    agg_rdd = (
+        agg.rdd
+        .map(lambda row: row[1:])
+        .flatMap(lambda row: [0 if e is None else e for e in row])
+        .collect())
+    row_len = len(agg.collect()[0]) - 1
+    agg = la.Matrices.dense(row_len, 2, agg_rdd)
+    test = st.Statistics.chiSqTest(agg)
+    print(cat, round(test.pValue, 4))
+                          
