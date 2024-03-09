@@ -1,5 +1,10 @@
 import numpy as np
+from pyspark.mllib.classification import (
+    LogisticRegressionWithLBFGS as LogisticRegression)
+import pyspark.mllib.evaluation as ev
+import pyspark.mllib.features as ft
 import pyspark.mllib.linalg as la
+import pyspark.mllib.regression as reg
 import pyspark.mllib.stat as st
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, udf, when
@@ -166,4 +171,35 @@ for cat in categoricals[1:]:
     agg = la.Matrices.dense(row_len, 2, agg_rdd)
     test = st.Statistics.chiSqTest(agg)
     print(cat, round(test.pValue, 4))
-                          
+
+
+# RDD of labeled points
+hashing = ft.HashingTF(7)
+births_hashed = (
+    births_trans
+    .rdd
+    .map(
+        lambda row: [
+            list(hashing.transform(row[1]).toArray()) if col == 'BIRTH_PLACE'
+            else row[i]
+            for i, col in enumerate(keep)])
+    .map(lambda row: [[e] if type(e) == int else e for e in row])
+    .map(lambda row: [item for sublist in rwo for item in sublist])
+    .map(lambda row: reg.LabeledPoint(row[0], la.Vectors.dense(row[1:]))))
+
+
+# Train-Test split
+births_train, births_test = births_hashed.randomSplit([0.6, 0.4])
+
+
+# Logistic Regression
+lr_mod = LogisticRegression.train(births_strain, iterations=10)
+lr_res = (
+    births_test
+    .map(lambda row: row.label)
+    .zip(lr_mod.predict(births_test.map(lambda row: row.features)))
+).map(lambda row: (row[0], row[1] * 1.))
+lr_eval = ev.BinaryClassificationMetrics(lr_res)
+print(f'Area under PR: {lr_eval.areaUnderPR:.2f}')  # Precision-Recall curve
+print(f'Area under ROC: {lr_eval.areaUnderROC:.2f}')
+lr_eval.unpersist()
