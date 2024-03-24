@@ -32,3 +32,14 @@ spark.sql(
     FROM tC'''
 ).show()
 
+
+# reduce()
+spark.sql(
+    '''SELECT celsius,
+    reduce(
+      celsius,
+      0,
+      (t, acc) -> t + acc, acc -> (acc div size(celsius) * 9 div 5) + 32
+    ) AS mean_fahrenheit
+    FROM tC'''
+).show()

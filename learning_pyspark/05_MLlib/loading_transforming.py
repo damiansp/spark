@@ -6,6 +6,7 @@ import pyspark.mllib.features as ft
 import pyspark.mllib.linalg as la
 import pyspark.mllib.regression as reg
 import pyspark.mllib.stat as st
+from pyspark.mllib.tree import RandomForest
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, udf, when
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
@@ -203,3 +204,27 @@ lr_eval = ev.BinaryClassificationMetrics(lr_res)
 print(f'Area under PR: {lr_eval.areaUnderPR:.2f}')  # Precision-Recall curve
 print(f'Area under ROC: {lr_eval.areaUnderROC:.2f}')
 lr_eval.unpersist()
+
+
+# Feature selection
+selector = ft.ChiSqSelector(4).fit(births_train)
+
+def get_top_features(data):
+    return (
+        data
+        .map(lambda row: row.label)
+        .zip(selector.transform(data.map(lambda row: row.features)))
+    ).map(lambda row: reg.LabeledPoint(row[0], row[1]))
+
+top_features_train = get_top_features(births_train)
+top_features_test = get_top_features(births_test)
+
+
+# Random Forest
+rf_mod = RandomForest.trainClassifier(
+    data=top_features_train,
+    numClasses=2,
+    categoricalFeaturesInfo={},
+    numTrees=6,
+    featureSubsetStrategy='all',
+    seed=123)
