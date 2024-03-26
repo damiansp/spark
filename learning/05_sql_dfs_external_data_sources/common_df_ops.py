@@ -18,7 +18,11 @@ def main():
     mini.createOrReplaceTempView('mini')
     spark.sql('SELECT * FROM delays LIMIT 10').show()
     spark.sql('SELECT * FROM mini').show()
-
+    (mini
+     .join(airports, airport.IATA == mini.origin)
+     .select('City', 'State', 'date', 'delay', 'distance', 'destination')
+     .show())
+    
 
 def load_airports():
     return (
@@ -46,6 +50,7 @@ def get_subset(delays, origin, dest, datelike):
                   AND destination == '{dest}'
                   AND date LIKE '{datelike}'
                   AND delay > 0''')))
+
 
 if __name__ == '__main__':
     main()
