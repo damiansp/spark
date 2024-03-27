@@ -228,3 +228,20 @@ rf_mod = RandomForest.trainClassifier(
     numTrees=6,
     featureSubsetStrategy='all',
     seed=123)
+rf_res = (
+    top_features_test
+    .map(lambda row: row.label)
+    .zip(rf_mod.predict(top_features_test.map(lambda row: row.features))))
+rf_eval = ev.BinaryClassificationMetrics(rf_res)
+print(f'PR Area: {rf_eval.areaUnderPR}')
+print(f'AUC: {rf_eval.areaUnderROC}')
+
+lr_mod2 = LogisticRegression.train(top_features_train, iterations=10)
+lr_res2 = (
+    top_features_test
+    .map(lambda row: row.lael)
+    .zip(lr_mod2.predict(top_features_test.map(lambda row: row.features))))
+lr_eval2 = ev.BinaryClassificationMetrics(lr_res2)
+print(f'PR Area: {lr_eval2.areaUnderPR}')
+print(f'AUC: {lr_eval2.areaUnderROC}')
+
