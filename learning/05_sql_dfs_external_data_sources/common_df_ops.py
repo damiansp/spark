@@ -19,11 +19,15 @@ def main():
     spark.sql('SELECT * FROM delays LIMIT 10').show()
     spark.sql('SELECT * FROM mini').show()
     (mini
-     .join(airports, airport.IATA == mini.origin)
+     .join(airports, airports.IATA == mini.origin)
      .select('City', 'State', 'date', 'delay', 'distance', 'destination')
      .show())
-    
+    # Unsupported w/o Hive
+    #make_departure_delays_window()
+    #get_most_delays()
+    #get_most_delays_windowed()
 
+    
 def load_airports():
     return (
         spark.read.format('csv')
@@ -50,6 +54,48 @@ def get_subset(delays, origin, dest, datelike):
                   AND destination == '{dest}'
                   AND date LIKE '{datelike}'
                   AND delay > 0''')))
+
+def make_departure_delays_window():
+    spark.sql('DROP TABLE IF EXISTS departure_delays_window')
+    spark.sql(
+        '''CREATE TABLE departure_delays_window AS
+        SELECT origin, destination, SUM(delay) AS total_delays
+        FROM delays
+        WHERE origin IN ('SEA', 'SFO', 'JFK')
+          AND destination in ('SEA', 'SFO', 'JFK', 'DEN', 'ORD', 'LAX', 'ATL')
+        GROUP BY origin, destination''')
+    spark.sql('SELECT * FROM departure_delays_window').show()
+
+
+def get_most_delays():
+    spark.sql(
+        '''SELECT origin, destination, SUM(total_delays) AS sum_total_delays
+        FROM departure_delays_window
+        WHERE origin = 'SEA'
+        GROUP BY origin, destination
+        ORDER BY sum_total_delays
+        LIMIT 3'''
+    ).show()
+
+
+def get_most_delays_windowed():
+    spark.sql(
+        '''SELECT origin, destination, total_delays, rank
+        FROM (
+
+          SELECT
+            origin,
+            destination,
+            total_delays,
+            DENSE_RANK() OVER (
+              PARTITION BY origin ORDER BY total_delays DESC
+            ) AS rank
+          FROM departure_delays_window
+        
+        ) t
+        WHERE rank <= 3'''
+    ).show()
+        
 
 
 if __name__ == '__main__':
