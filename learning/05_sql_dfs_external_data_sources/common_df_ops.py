@@ -26,7 +26,11 @@ def main():
     #make_departure_delays_window()
     #get_most_delays()
     #get_most_delays_windowed()
-
+    add_col(mini)
+    drop_col(mini)
+    rename_col(mini)
+    pivot(delays)
+    
     
 def load_airports():
     return (
@@ -95,8 +99,33 @@ def get_most_delays_windowed():
         ) t
         WHERE rank <= 3'''
     ).show()
-        
 
 
+def add_col(df):
+    df.withColumn(
+        'status',
+        expr('CASE WHEN delay <= 10 THEN "on time" ELSE "delayed" END')
+    ).show()
+
+
+def drop_col(df):
+    df.drop('delay').show()
+    
+
+def rename_col(df):
+    df.withColumnRenamed('status', 'flight_status').show()
+
+
+def pivot(delays):
+    spark.sql(
+        '''SELECT
+          destination,
+          CAST(SUBSTRING(date, 0, 2) AS INT) AS month,
+          delay
+        FROM delays
+        WHERE origin = 'SEA' '''
+    ).show()
+    
+    
 if __name__ == '__main__':
     main()
