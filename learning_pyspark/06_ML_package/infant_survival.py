@@ -1,3 +1,5 @@
+from pyspark.ml import Pipeline
+import pyspark.ml.classification as cl
 import pyspark.ml.feature as ft
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
@@ -23,3 +25,13 @@ labels = [
 schema = StructType([StructField(e[0], e[1], False) for e in labels])
 births = spark.read.csv(
     f'{DATA}/births_transformed.csv.gz', header=True, schema=schema)
+births = (
+    births
+    .withColumn('BIRTH_PLACE_INT', births['BIRTHPLACE'].cast(IntegerType())))
+encoder = ft.OneHotEncoder(
+    inputCol='BIRTH_PLACE_INT', outputCol='BIRTH_PLACE_VEC')
+features_creator = ft.VectorAssembler(
+    inputCols=[col[0] for col in labels[2:]] + [encoder.getOutputCol()],
+    outputCols'features')
+logistic = cl.LogisticRegression(
+    maxIter=10, regParam=0.01, labelCol='INFANT_ALIVE_AT_REPORT')
