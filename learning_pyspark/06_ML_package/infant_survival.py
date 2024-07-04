@@ -30,8 +30,10 @@ births = (
     .withColumn('BIRTH_PLACE_INT', births['BIRTHPLACE'].cast(IntegerType())))
 encoder = ft.OneHotEncoder(
     inputCol='BIRTH_PLACE_INT', outputCol='BIRTH_PLACE_VEC')
-features_creator = ft.VectorAssembler(
+feature_creator = ft.VectorAssembler(
     inputCols=[col[0] for col in labels[2:]] + [encoder.getOutputCol()],
     outputCols'features')
 logistic = cl.LogisticRegression(
     maxIter=10, regParam=0.01, labelCol='INFANT_ALIVE_AT_REPORT')
+pipeline = Pipeline(stages=[encoder, feature_creator, logistic])
+train, test = births.randomSplit([0.7, 0.3], seed=666)
