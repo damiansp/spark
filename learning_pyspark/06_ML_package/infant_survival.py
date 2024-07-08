@@ -1,5 +1,6 @@
 from pyspark.ml import Pipeline
 import pyspark.ml.classification as cl
+import pyspark.ml.evaluation as ev
 import pyspark.ml.feature as ft
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
@@ -37,3 +38,14 @@ logistic = cl.LogisticRegression(
     maxIter=10, regParam=0.01, labelCol='INFANT_ALIVE_AT_REPORT')
 pipeline = Pipeline(stages=[encoder, feature_creator, logistic])
 train, test = births.randomSplit([0.7, 0.3], seed=666)
+mod = pipeline.fit(train)
+test_mod = mod.transform(test)
+
+evaluator = ev.BinaryClassificationEvaluator(
+    rawPredictionCol='probability', labelCol='INFANT_ALIVE_AT_REPORT')
+print(
+    'AUC:',
+    evaluator.evaluate(test_mod, {evaluator.metricName: 'areaUnderROC'}))
+print(
+    'AUPR:',
+    evaluator.evaluate(test_mod, {evaluator.metricName: 'areaUnderROC'}))
